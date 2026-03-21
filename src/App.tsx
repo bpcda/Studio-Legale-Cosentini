@@ -9,6 +9,7 @@ import Consulenza from "./pages/Consulenza.tsx";
 import Login from "./pages/Login.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import SentenzeCommentate from "./pages/SentenzeCommentate.tsx";
 
 const queryClient = new QueryClient();
 
