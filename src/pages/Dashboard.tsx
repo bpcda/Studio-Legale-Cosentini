@@ -20,9 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LogOut, RefreshCw, Calendar, Phone, Mail, User, Filter, FileText, MessageSquare } from "lucide-react";
+import { LogOut, RefreshCw, Calendar, Phone, Mail, User, Filter, FileText, MessageSquare, Users } from "lucide-react";
 import logoCosentini from "@/assets/logo-cosentini.png";
 import SentenceManager from "@/components/dashboard/SentenceManager";
+import TeamManager from "@/components/dashboard/TeamManager";
 
 interface ConsultationRequest {
   id: string;
@@ -150,6 +151,10 @@ const Dashboard = () => {
             <TabsTrigger value="sentenze" className="gap-1.5">
               <FileText className="h-4 w-4" />
               Sentenze
+            </TabsTrigger>
+            <TabsTrigger value="team" className="gap-1.5">
+              <Users className="h-4 w-4" />
+              Team
             </TabsTrigger>
           </TabsList>
 
@@ -279,6 +284,11 @@ const Dashboard = () => {
           {/* Sentenze Tab */}
           <TabsContent value="sentenze">
             <SentenceManager />
+          </TabsContent>
+
+          {/* Team Tab */}
+          <TabsContent value="team">
+            <TeamManager />
           </TabsContent>
         </Tabs>
       </main>
