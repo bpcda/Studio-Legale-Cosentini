@@ -245,13 +245,13 @@ const Index = () => {
           </div>
         </div>
 
-        <a
-          href="#studio"
+        <Link
+          to="/lo-studio"
           className="absolute bottom-8 left-1/2 -translate-x-1/2 text-primary-foreground/40 animate-bounce"
           aria-label="Scorri verso il basso"
         >
           <ChevronDown size={24} />
-        </a>
+        </Link>
       </section>
 
       {/* About / Lo Studio */}
