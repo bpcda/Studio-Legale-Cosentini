@@ -53,27 +53,6 @@ const navItems = [
 ];
 
 // Placeholder articles — will be replaced by LinkedIn feed
-const placeholderArticles = [
-  {
-    title: "Le novità del Codice della Crisi d'Impresa: cosa cambia per le PMI",
-    excerpt: "Un'analisi approfondita delle recenti modifiche normative e il loro impatto sulle piccole e medie imprese italiane.",
-    date: "2025-03-10",
-    url: "#",
-  },
-  {
-    title: "Trust e protezione patrimoniale: strumenti e opportunità",
-    excerpt: "Come il trust può essere utilizzato per la tutela del patrimonio familiare e aziendale nel contesto normativo italiano.",
-    date: "2025-02-22",
-    url: "#",
-  },
-  {
-    title: "Responsabilità 231: aggiornamenti sui modelli organizzativi",
-    excerpt: "Le ultime pronunce giurisprudenziali in materia di responsabilità amministrativa degli enti e le best practice.",
-    date: "2025-01-15",
-    url: "#",
-  },
-];
-
 const Logo = ({ className = "h-10" }: { className?: string }) => (
   <img
     src={logoCosentini}
