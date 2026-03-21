@@ -1,11 +1,11 @@
-import { Phone, Mail, MapPin, Scale, FileText, Shield, Landmark, Briefcase, Building2, ChevronDown, Menu, X, ExternalLink, Calendar } from "lucide-react";
+import { Phone, Mail, MapPin, Scale, FileText, Shield, Landmark, Briefcase, Building2, ChevronDown, Menu, X, ExternalLink, Calendar, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import ScrollReveal from "@/components/ScrollReveal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import logoCosentini from "@/assets/logo-cosentini.png";
-import { useLinkedInArticles } from "@/hooks/useLinkedInArticles";
+import { supabase } from "@/lib/supabase";
 
 const services = [
   {
