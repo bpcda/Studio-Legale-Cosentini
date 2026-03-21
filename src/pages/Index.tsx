@@ -171,16 +171,27 @@ const Index = () => {
         {/* Mobile menu */}
         {menuOpen && (
           <div className="md:hidden border-t border-border bg-background px-6 py-4 space-y-3">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className="block text-sm text-muted-foreground py-2"
-                onClick={() => setMenuOpen(false)}
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.map((item) =>
+              item.isRoute ? (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="block text-sm text-muted-foreground py-2"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="block text-sm text-muted-foreground py-2"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </a>
+              )
+            )}
             <Link to="/consulenza">
               <Button size="sm" className="w-full mt-2">Consulenza</Button>
             </Link>
