@@ -92,13 +92,18 @@ const SentenzaDetail = () => {
             <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight leading-tight">
               {sentence.title}
             </h1>
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-2">
-              <Calendar className="h-4 w-4" />
-              {new Date(sentence.created_at).toLocaleDateString("it-IT", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              })}
+            <div className="flex items-center gap-3 text-sm text-muted-foreground mt-2">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-4 w-4" />
+                {new Date(sentence.created_at).toLocaleDateString("it-IT", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </div>
+              {sentence.author_name && (
+                <span className="italic">· di {sentence.author_name}</span>
+              )}
             </div>
 
             {sentence.tags?.length > 0 && (
