@@ -85,9 +85,11 @@ const SentenzeCommentate = () => {
                 <article className="rounded-lg border border-border bg-card p-6 hover:shadow-md transition-shadow duration-300">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                     <div className="space-y-1.5">
-                      <h2 className="text-lg font-medium text-foreground leading-snug">
-                        {s.title}
-                      </h2>
+                      <Link to={`/sentenze-commentate/${s.id}`} className="hover:underline underline-offset-2">
+                        <h2 className="text-lg font-medium text-foreground leading-snug">
+                          {s.title}
+                        </h2>
+                      </Link>
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Calendar className="h-3.5 w-3.5" />
                         {new Date(s.created_at).toLocaleDateString("it-IT", {

@@ -49,6 +49,7 @@ const services = [
 const navItems = [
   { label: "Lo Studio", href: "#studio" },
   { label: "Servizi", href: "#servizi" },
+  { label: "Sentenze", href: "/sentenze-commentate", isRoute: true },
   { label: "Articoli", href: "#articoli" },
   { label: "Contatti", href: "#contatti" },
 ];
