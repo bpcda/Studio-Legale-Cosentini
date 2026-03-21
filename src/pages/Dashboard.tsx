@@ -291,6 +291,11 @@ const Dashboard = () => {
             <SentenceManager />
           </TabsContent>
 
+          {/* Articoli Tab */}
+          <TabsContent value="articoli">
+            <ArticleManager />
+          </TabsContent>
+
           {/* Team Tab */}
           <TabsContent value="team">
             <TeamManager />
