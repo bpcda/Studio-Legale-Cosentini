@@ -20,10 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LogOut, RefreshCw, Calendar, Phone, Mail, User, Filter, FileText, MessageSquare, Users } from "lucide-react";
+import { LogOut, RefreshCw, Calendar, Phone, Mail, User, Filter, FileText, MessageSquare, Users, BookOpen } from "lucide-react";
 import logoCosentini from "@/assets/logo-cosentini.png";
 import SentenceManager from "@/components/dashboard/SentenceManager";
 import TeamManager from "@/components/dashboard/TeamManager";
+import ArticleManager from "@/components/dashboard/ArticleManager";
 
 interface ConsultationRequest {
   id: string;
