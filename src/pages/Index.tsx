@@ -209,7 +209,7 @@ const Index = () => {
               <a href="#servizi">
                 <Button
                   variant="outline"
-                  className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 active:scale-[0.97] transition-transform"
+                  className="border-primary-foreground/20 text-primary-foreground bg-primary-foreground/10 active:scale-[0.97] transition-transform"
                 >
                   I nostri servizi
                 </Button>
