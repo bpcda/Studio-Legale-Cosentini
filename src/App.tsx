@@ -12,6 +12,8 @@ import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import SentenzeCommentate from "./pages/SentenzeCommentate.tsx";
 import SentenzaDetail from "./pages/SentenzaDetail.tsx";
+import Articoli from "./pages/Articoli.tsx";
+import ArticoloDetail from "./pages/ArticoloDetail.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import CookiePolicy from "./pages/CookiePolicy.tsx";
 import LoStudio from "./pages/LoStudio.tsx";
