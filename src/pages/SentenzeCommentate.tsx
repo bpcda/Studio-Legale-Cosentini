@@ -99,18 +99,22 @@ const SentenzeCommentate = () => {
                         })}
                       </div>
                     </div>
-                    {s.pdf_url && (
-                      <a
-                        href={s.pdf_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Button variant="outline" size="sm" className="gap-1.5 shrink-0 active:scale-[0.97] transition-transform">
-                          <ExternalLink className="h-3.5 w-3.5" />
-                          Scarica PDF
+                    <div className="flex gap-2 shrink-0">
+                      <Link to={`/sentenze-commentate/${s.id}`}>
+                        <Button variant="default" size="sm" className="gap-1.5 active:scale-[0.97] transition-transform">
+                          <BookOpen className="h-3.5 w-3.5" />
+                          Leggi
                         </Button>
-                      </a>
-                    )}
+                      </Link>
+                      {s.pdf_url && (
+                        <a href={s.pdf_url} target="_blank" rel="noopener noreferrer" download>
+                          <Button variant="outline" size="sm" className="gap-1.5 active:scale-[0.97] transition-transform">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            PDF
+                          </Button>
+                        </a>
+                      )}
+                    </div>
                   </div>
 
                   {s.tags?.length > 0 && (
