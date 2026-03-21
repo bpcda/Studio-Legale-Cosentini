@@ -5,9 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { FileText, Plus, Trash2, Upload, X, RefreshCw } from "lucide-react";
+import { FileText, Plus, Trash2, Upload, X, RefreshCw, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Sentence {
@@ -16,23 +19,37 @@ interface Sentence {
   tags: string[];
   comment: string;
   pdf_url: string;
+  author_name: string | null;
+  author_team_member_id: string | null;
   created_at: string;
+}
+
+interface TeamMember {
+  id: string;
+  full_name: string;
 }
 
 const SentenceManager = () => {
   const { toast } = useToast();
   const [sentences, setSentences] = useState<Sentence[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   // Form state
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [existingPdfUrl, setExistingPdfUrl] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [showForm, setShowForm] = useState(false);
+
+  // Author state: "external" or a team member id
+  const [authorType, setAuthorType] = useState<string>("external");
+  const [externalAuthorName, setExternalAuthorName] = useState("");
 
   const fetchSentences = useCallback(async () => {
     if (!supabase) return;
@@ -45,15 +62,23 @@ const SentenceManager = () => {
     setLoading(false);
   }, []);
 
+  const fetchTeamMembers = useCallback(async () => {
+    if (!supabase) return;
+    const { data } = await supabase
+      .from("team_members")
+      .select("id, full_name")
+      .order("display_order");
+    if (data) setTeamMembers(data);
+  }, []);
+
   useEffect(() => {
     fetchSentences();
-  }, [fetchSentences]);
+    fetchTeamMembers();
+  }, [fetchSentences, fetchTeamMembers]);
 
   const addTag = () => {
     const t = tagInput.trim();
-    if (t && !tags.includes(t)) {
-      setTags([...tags, t]);
-    }
+    if (t && !tags.includes(t)) setTags([...tags, t]);
     setTagInput("");
   };
 
@@ -72,9 +97,7 @@ const SentenceManager = () => {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file?.type === "application/pdf") {
-      setPdfFile(file);
-    }
+    if (file?.type === "application/pdf") setPdfFile(file);
   };
 
   const resetForm = () => {
@@ -83,7 +106,27 @@ const SentenceManager = () => {
     setTags([]);
     setTagInput("");
     setPdfFile(null);
+    setExistingPdfUrl("");
     setShowForm(false);
+    setEditingId(null);
+    setAuthorType("external");
+    setExternalAuthorName("");
+  };
+
+  const startEdit = (s: Sentence) => {
+    setEditingId(s.id);
+    setTitle(s.title);
+    setComment(s.comment);
+    setTags(s.tags || []);
+    setExistingPdfUrl(s.pdf_url || "");
+    setPdfFile(null);
+    if (s.author_team_member_id) {
+      setAuthorType(s.author_team_member_id);
+    } else {
+      setAuthorType("external");
+      setExternalAuthorName(s.author_name || "");
+    }
+    setShowForm(true);
   };
 
   const handleSubmit = async () => {
@@ -93,7 +136,7 @@ const SentenceManager = () => {
     }
 
     setSaving(true);
-    let pdf_url = "";
+    let pdf_url = existingPdfUrl;
 
     if (pdfFile) {
       const fileName = `${Date.now()}_${pdfFile.name}`;
@@ -113,19 +156,41 @@ const SentenceManager = () => {
       pdf_url = urlData.publicUrl;
     }
 
-    const { error } = await supabase.from("commented_sentences").insert({
+    const isTeamMember = authorType !== "external";
+    const teamMemberName = isTeamMember
+      ? teamMembers.find((m) => m.id === authorType)?.full_name || null
+      : null;
+
+    const payload = {
       title: title.trim(),
       comment: comment.trim(),
       tags,
       pdf_url,
-    });
+      author_name: isTeamMember ? teamMemberName : (externalAuthorName.trim() || "Autore esterno"),
+      author_team_member_id: isTeamMember ? authorType : null,
+    };
 
-    if (error) {
-      toast({ title: "Errore salvataggio", description: error.message, variant: "destructive" });
+    if (editingId) {
+      const { error } = await supabase
+        .from("commented_sentences")
+        .update(payload)
+        .eq("id", editingId);
+      if (error) {
+        toast({ title: "Errore aggiornamento", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Sentenza aggiornata" });
+        resetForm();
+        fetchSentences();
+      }
     } else {
-      toast({ title: "Sentenza pubblicata" });
-      resetForm();
-      fetchSentences();
+      const { error } = await supabase.from("commented_sentences").insert(payload);
+      if (error) {
+        toast({ title: "Errore salvataggio", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Sentenza pubblicata" });
+        resetForm();
+        fetchSentences();
+      }
     }
     setSaving(false);
   };
@@ -139,6 +204,14 @@ const SentenceManager = () => {
     }
   };
 
+  const getAuthorLabel = (s: Sentence) => {
+    if (s.author_team_member_id) {
+      const member = teamMembers.find((m) => m.id === s.author_team_member_id);
+      return member?.full_name || "—";
+    }
+    return s.author_name || "—";
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -147,10 +220,14 @@ const SentenceManager = () => {
           <Button variant="outline" size="sm" onClick={fetchSentences} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
-          <Button size="sm" onClick={() => setShowForm(!showForm)} className="gap-1.5">
-            <Plus className="h-4 w-4" />
-            Nuova
-          </Button>
+          {editingId ? (
+            <Button variant="outline" size="sm" onClick={resetForm}>Annulla modifica</Button>
+          ) : (
+            <Button size="sm" onClick={() => setShowForm(!showForm)} className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              Nuova
+            </Button>
+          )}
         </div>
       </div>
 
@@ -169,6 +246,29 @@ const SentenceManager = () => {
             onChange={(e) => setComment(e.target.value)}
             rows={5}
           />
+
+          {/* Author */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Autore</label>
+            <Select value={authorType} onValueChange={(v) => { setAuthorType(v); setExternalAuthorName(""); }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleziona autore" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="external">Autore esterno</SelectItem>
+                {teamMembers.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {authorType === "external" && (
+              <Input
+                placeholder="Nome autore esterno (opzionale)"
+                value={externalAuthorName}
+                onChange={(e) => setExternalAuthorName(e.target.value)}
+              />
+            )}
+          </div>
 
           {/* Tags */}
           <div className="space-y-2">
@@ -217,6 +317,15 @@ const SentenceManager = () => {
                   <X className="h-4 w-4" />
                 </button>
               </div>
+            ) : existingPdfUrl ? (
+              <div className="flex items-center justify-center gap-2 text-sm">
+                <FileText className="h-5 w-5 text-accent" />
+                <span className="text-muted-foreground">PDF già caricato — trascina per sostituire</span>
+                <label className="text-accent cursor-pointer hover:underline">
+                  oppure seleziona
+                  <input type="file" accept="application/pdf" className="hidden" onChange={handleFileSelect} />
+                </label>
+              </div>
             ) : (
               <div className="space-y-2">
                 <Upload className="h-8 w-8 mx-auto text-muted-foreground/50" />
@@ -224,12 +333,7 @@ const SentenceManager = () => {
                   Trascina qui il PDF oppure{" "}
                   <label className="text-accent cursor-pointer hover:underline">
                     selezionalo
-                    <input
-                      type="file"
-                      accept="application/pdf"
-                      className="hidden"
-                      onChange={handleFileSelect}
-                    />
+                    <input type="file" accept="application/pdf" className="hidden" onChange={handleFileSelect} />
                   </label>
                 </p>
               </div>
@@ -239,7 +343,7 @@ const SentenceManager = () => {
           <div className="flex justify-end gap-2">
             <Button variant="ghost" size="sm" onClick={resetForm}>Annulla</Button>
             <Button size="sm" onClick={handleSubmit} disabled={saving}>
-              {saving ? "Pubblicazione..." : "Pubblica"}
+              {saving ? "Salvataggio..." : editingId ? "Aggiorna" : "Pubblica"}
             </Button>
           </div>
         </div>
@@ -261,9 +365,9 @@ const SentenceManager = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Titolo</TableHead>
-                <TableHead className="hidden sm:table-cell">Tag</TableHead>
+                <TableHead className="hidden sm:table-cell">Autore</TableHead>
                 <TableHead className="hidden md:table-cell">Data</TableHead>
-                <TableHead className="text-right w-20">Azioni</TableHead>
+                <TableHead className="text-right w-24">Azioni</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -275,15 +379,8 @@ const SentenceManager = () => {
                       <p className="text-xs text-muted-foreground line-clamp-1">{s.comment}</p>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <div className="flex flex-wrap gap-1">
-                      {s.tags?.slice(0, 2).map((t) => (
-                        <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
-                      ))}
-                      {(s.tags?.length ?? 0) > 2 && (
-                        <span className="text-xs text-muted-foreground">+{s.tags.length - 2}</span>
-                      )}
-                    </div>
+                  <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
+                    {getAuthorLabel(s)}
                   </TableCell>
                   <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
                     {new Date(s.created_at).toLocaleDateString("it-IT", {
@@ -291,14 +388,24 @@ const SentenceManager = () => {
                     })}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteSentence(s.id)}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => startEdit(s)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteSentence(s.id)}
+                        className="text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

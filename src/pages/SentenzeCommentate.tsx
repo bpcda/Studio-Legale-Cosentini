@@ -14,6 +14,8 @@ interface Sentence {
   tags: string[];
   comment: string;
   pdf_url: string;
+  author_name: string | null;
+  author_team_member_id: string | null;
   created_at: string;
 }
 
@@ -127,8 +129,19 @@ const SentenzeCommentate = () => {
                     </div>
                   )}
 
-                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                    {s.comment}
+                  {s.author_name && (
+                    <p className="text-xs text-muted-foreground/70 mb-2 italic">
+                      di {s.author_name}
+                    </p>
+                  )}
+
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {(() => {
+                      const words = s.comment.split(/\s+/);
+                      return words.length > 50
+                        ? words.slice(0, 50).join(" ") + "…"
+                        : s.comment;
+                    })()}
                   </p>
                 </article>
               </ScrollReveal>
