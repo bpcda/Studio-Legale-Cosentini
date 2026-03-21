@@ -9,6 +9,7 @@ import Consulenza from "./pages/Consulenza.tsx";
 import Login from "./pages/Login.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import SentenzeCommentate from "./pages/SentenzeCommentate.tsx";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/consulenza" element={<Consulenza />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/sentenze-commentate" element={<SentenzeCommentate />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
