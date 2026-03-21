@@ -49,6 +49,7 @@ const services = [
 const navItems = [
   { label: "Lo Studio", href: "#studio" },
   { label: "Servizi", href: "#servizi" },
+  { label: "Sentenze", href: "/sentenze-commentate", isRoute: true },
   { label: "Articoli", href: "#articoli" },
   { label: "Contatti", href: "#contatti" },
 ];
@@ -131,15 +132,25 @@ const Index = () => {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.map((item) =>
+              item.isRoute ? (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                >
+                  {item.label}
+                </a>
+              )
+            )}
             <Link to="/consulenza">
               <Button size="sm" className="active:scale-[0.97] transition-transform">
                 Consulenza
@@ -160,16 +171,27 @@ const Index = () => {
         {/* Mobile menu */}
         {menuOpen && (
           <div className="md:hidden border-t border-border bg-background px-6 py-4 space-y-3">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className="block text-sm text-muted-foreground py-2"
-                onClick={() => setMenuOpen(false)}
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.map((item) =>
+              item.isRoute ? (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="block text-sm text-muted-foreground py-2"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="block text-sm text-muted-foreground py-2"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </a>
+              )
+            )}
             <Link to="/consulenza">
               <Button size="sm" className="w-full mt-2">Consulenza</Button>
             </Link>

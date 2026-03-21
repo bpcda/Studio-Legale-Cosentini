@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import ScrollReveal from "@/components/ScrollReveal";
-import { FileText, ArrowLeft, ExternalLink, Calendar } from "lucide-react";
+import { FileText, ArrowLeft, ExternalLink, Calendar, BookOpen } from "lucide-react";
 import logoCosentini from "@/assets/logo-cosentini.png";
 
 interface Sentence {
@@ -85,9 +85,11 @@ const SentenzeCommentate = () => {
                 <article className="rounded-lg border border-border bg-card p-6 hover:shadow-md transition-shadow duration-300">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                     <div className="space-y-1.5">
-                      <h2 className="text-lg font-medium text-foreground leading-snug">
-                        {s.title}
-                      </h2>
+                      <Link to={`/sentenze-commentate/${s.id}`} className="hover:underline underline-offset-2">
+                        <h2 className="text-lg font-medium text-foreground leading-snug">
+                          {s.title}
+                        </h2>
+                      </Link>
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Calendar className="h-3.5 w-3.5" />
                         {new Date(s.created_at).toLocaleDateString("it-IT", {
@@ -97,18 +99,22 @@ const SentenzeCommentate = () => {
                         })}
                       </div>
                     </div>
-                    {s.pdf_url && (
-                      <a
-                        href={s.pdf_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Button variant="outline" size="sm" className="gap-1.5 shrink-0 active:scale-[0.97] transition-transform">
-                          <ExternalLink className="h-3.5 w-3.5" />
-                          Scarica PDF
+                    <div className="flex gap-2 shrink-0">
+                      <Link to={`/sentenze-commentate/${s.id}`}>
+                        <Button variant="default" size="sm" className="gap-1.5 active:scale-[0.97] transition-transform">
+                          <BookOpen className="h-3.5 w-3.5" />
+                          Leggi
                         </Button>
-                      </a>
-                    )}
+                      </Link>
+                      {s.pdf_url && (
+                        <a href={s.pdf_url} target="_blank" rel="noopener noreferrer" download>
+                          <Button variant="outline" size="sm" className="gap-1.5 active:scale-[0.97] transition-transform">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            PDF
+                          </Button>
+                        </a>
+                      )}
+                    </div>
                   </div>
 
                   {s.tags?.length > 0 && (
