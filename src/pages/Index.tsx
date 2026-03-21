@@ -420,7 +420,7 @@ const Index = () => {
                   <a href="tel:+390817511775">
                     <Button
                       variant="outline"
-                      className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 active:scale-[0.97] transition-transform gap-2"
+                      className="border-primary-foreground/20 text-primary-foreground bg-primary-foreground/10 active:scale-[0.97] transition-transform gap-2"
                     >
                       <Phone size={16} />
                       081 7511775
