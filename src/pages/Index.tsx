@@ -140,11 +140,11 @@ const Index = () => {
                 {item.label}
               </a>
             ))}
-            <a href="mailto:avvocato@cosentini.it">
+            <Link to="/consulenza">
               <Button size="sm" className="active:scale-[0.97] transition-transform">
                 Consulenza
               </Button>
-            </a>
+            </Link>
           </div>
 
           {/* Mobile menu toggle */}
