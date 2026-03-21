@@ -11,6 +11,7 @@ import Login from "./pages/Login.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import SentenzeCommentate from "./pages/SentenzeCommentate.tsx";
+import SentenzaDetail from "./pages/SentenzaDetail.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import CookiePolicy from "./pages/CookiePolicy.tsx";
 
