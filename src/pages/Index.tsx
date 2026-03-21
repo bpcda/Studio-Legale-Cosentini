@@ -1,4 +1,5 @@
 import { Phone, Mail, MapPin, Scale, FileText, Shield, Landmark, Briefcase, Building2, ChevronDown, Menu, X, ExternalLink, Calendar } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -139,11 +140,11 @@ const Index = () => {
                 {item.label}
               </a>
             ))}
-            <a href="mailto:avvocato@cosentini.it">
+            <Link to="/consulenza">
               <Button size="sm" className="active:scale-[0.97] transition-transform">
                 Consulenza
               </Button>
-            </a>
+            </Link>
           </div>
 
           {/* Mobile menu toggle */}
@@ -169,9 +170,9 @@ const Index = () => {
                 {item.label}
               </a>
             ))}
-            <a href="mailto:avvocato@cosentini.it">
+            <Link to="/consulenza">
               <Button size="sm" className="w-full mt-2">Consulenza</Button>
-            </a>
+            </Link>
           </div>
         )}
       </nav>
@@ -213,11 +214,11 @@ const Index = () => {
                   I nostri servizi
                 </Button>
               </a>
-              <a href="#contatti">
+              <Link to="/consulenza">
                 <Button className="bg-accent text-accent-foreground hover:bg-accent/90 active:scale-[0.97] transition-transform">
                   Richiedi consulenza
                 </Button>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -410,12 +411,12 @@ const Index = () => {
                   la garanzia di un'assistenza qualificata e personalizzata.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <a href="mailto:avvocato@cosentini.it">
+                  <Link to="/consulenza">
                     <Button className="bg-accent text-accent-foreground hover:bg-accent/90 active:scale-[0.97] transition-transform gap-2">
                       <Mail size={16} />
-                      Scrivici
+                      Richiedi consulenza
                     </Button>
-                  </a>
+                  </Link>
                   <a href="tel:+390817511775">
                     <Button
                       variant="outline"
