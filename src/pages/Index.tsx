@@ -381,7 +381,7 @@ const Index = () => {
           <ScrollReveal delay={300}>
             <div className="text-center mt-12">
               <a
-                href="https://www.linkedin.com/in/sergiocosentini/"
+                href="https://www.linkedin.com/in/scosentini/"
                 target="_blank"
                 rel="noopener noreferrer"
               >
