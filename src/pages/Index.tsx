@@ -254,57 +254,6 @@ const Index = () => {
         </Link>
       </section>
 
-      {/* About / Lo Studio */}
-      <section id="studio" className="py-24 md:py-32" aria-label="Chi siamo">
-        <div className="max-w-6xl mx-auto px-6">
-          <ScrollReveal>
-            <div className="max-w-3xl mx-auto text-center">
-              <p className="text-accent font-medium text-sm tracking-widest uppercase mb-4">Lo Studio</p>
-              <h2 className="text-3xl md:text-5xl font-serif font-semibold text-foreground mb-8 leading-tight" style={{ textWrap: "balance" as any }}>
-                Esperienza e competenza al servizio dei vostri diritti
-              </h2>
-              <p className="text-muted-foreground leading-relaxed text-base md:text-lg max-w-2xl mx-auto" style={{ overflowWrap: "break-word" }}>
-                Lo Studio Legale Cosentini offre ai propri clienti la garanzia che le attività
-                di assistenza e consulenza derivano dalla diretta esperienza dei suoi componenti.
-                Con sedi operative a Napoli e Roma, lo studio opera su tutto il territorio nazionale
-                con un approccio rigoroso e orientato ai risultati.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          {/* Contact cards — always visible info */}
-          <div className="grid sm:grid-cols-3 gap-6 mt-16">
-            <ScrollReveal delay={0}>
-              <a href="tel:+390817511775" className="block group">
-                <div className="p-6 rounded-lg bg-card border border-border hover:shadow-lg hover:shadow-foreground/5 transition-shadow duration-300">
-                  <Phone size={20} className="text-accent mb-4" />
-                  <p className="font-medium text-foreground text-sm mb-1">Sede di Napoli</p>
-                  <p className="text-foreground font-semibold">081 7511775</p>
-                </div>
-              </a>
-            </ScrollReveal>
-            <ScrollReveal delay={80}>
-              <a href="tel:+390698357515" className="block group">
-                <div className="p-6 rounded-lg bg-card border border-border hover:shadow-lg hover:shadow-foreground/5 transition-shadow duration-300">
-                  <Phone size={20} className="text-accent mb-4" />
-                  <p className="font-medium text-foreground text-sm mb-1">Sede di Roma</p>
-                  <p className="text-foreground font-semibold">06 98357515</p>
-                </div>
-              </a>
-            </ScrollReveal>
-            <ScrollReveal delay={160}>
-              <a href="mailto:avvocato@cosentini.it" className="block group">
-                <div className="p-6 rounded-lg bg-card border border-border hover:shadow-lg hover:shadow-foreground/5 transition-shadow duration-300">
-                  <Mail size={20} className="text-accent mb-4" />
-                  <p className="font-medium text-foreground text-sm mb-1">Email</p>
-                  <p className="text-accent font-semibold">avvocato@cosentini.it</p>
-                </div>
-              </a>
-            </ScrollReveal>
-          </div>
-        </div>
-      </section>
-
       {/* Services */}
       <section id="servizi" className="py-24 md:py-32 bg-card" aria-label="Servizi legali">
         <div className="max-w-6xl mx-auto px-6">
