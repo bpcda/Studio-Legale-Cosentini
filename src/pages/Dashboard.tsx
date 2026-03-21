@@ -152,6 +152,10 @@ const Dashboard = () => {
               <FileText className="h-4 w-4" />
               Sentenze
             </TabsTrigger>
+            <TabsTrigger value="team" className="gap-1.5">
+              <Users className="h-4 w-4" />
+              Team
+            </TabsTrigger>
           </TabsList>
 
           {/* Consulenze Tab */}
