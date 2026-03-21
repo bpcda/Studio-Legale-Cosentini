@@ -465,8 +465,8 @@ const Index = () => {
           <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
             <p>© {new Date().getFullYear()} Studio Legale Cosentini. Tutti i diritti riservati.</p>
             <div className="flex gap-6">
-              <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-foreground transition-colors">Cookie Policy</a>
+              <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+              <Link to="/cookie-policy" className="hover:text-foreground transition-colors">Cookie Policy</Link>
             </div>
           </div>
         </div>
