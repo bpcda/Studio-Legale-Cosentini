@@ -214,7 +214,7 @@ const Index = () => {
                   I nostri servizi
                 </Button>
               </a>
-              <a href="#contatti">
+              <Link to="/consulenza">
                 <Button className="bg-accent text-accent-foreground hover:bg-accent/90 active:scale-[0.97] transition-transform">
                   Richiedi consulenza
                 </Button>
