@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import ScrollReveal from "@/components/ScrollReveal";
-import { FileText, ArrowLeft, ExternalLink, Calendar } from "lucide-react";
+import { FileText, ArrowLeft, ExternalLink, Calendar, BookOpen } from "lucide-react";
 import logoCosentini from "@/assets/logo-cosentini.png";
 
 interface Sentence {
