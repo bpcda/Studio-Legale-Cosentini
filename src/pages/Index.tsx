@@ -68,7 +68,25 @@ const Logo = ({ className = "h-10" }: { className?: string }) => (
 
 const Index = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { articles, isLoading: articlesLoading } = useLinkedInArticles();
+  const [articles, setArticles] = useState<any[]>([]);
+  const [articlesLoading, setArticlesLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      if (!supabase) {
+        setArticlesLoading(false);
+        return;
+      }
+      const { data } = await supabase
+        .from("articles")
+        .select("*")
+        .order("date", { ascending: false })
+        .limit(6);
+      if (data) setArticles(data);
+      setArticlesLoading(false);
+    };
+    fetchArticles();
+  }, []);
 
   const jsonLd = {
     "@context": "https://schema.org",
