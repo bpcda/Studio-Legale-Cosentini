@@ -218,7 +218,7 @@ const Index = () => {
                 <Button className="bg-accent text-accent-foreground hover:bg-accent/90 active:scale-[0.97] transition-transform">
                   Richiedi consulenza
                 </Button>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
