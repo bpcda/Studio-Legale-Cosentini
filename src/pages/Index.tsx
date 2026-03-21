@@ -170,9 +170,9 @@ const Index = () => {
                 {item.label}
               </a>
             ))}
-            <a href="mailto:avvocato@cosentini.it">
+            <Link to="/consulenza">
               <Button size="sm" className="w-full mt-2">Consulenza</Button>
-            </a>
+            </Link>
           </div>
         )}
       </nav>
