@@ -411,12 +411,12 @@ const Index = () => {
                   la garanzia di un'assistenza qualificata e personalizzata.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <a href="mailto:avvocato@cosentini.it">
+                  <Link to="/consulenza">
                     <Button className="bg-accent text-accent-foreground hover:bg-accent/90 active:scale-[0.97] transition-transform gap-2">
                       <Mail size={16} />
-                      Scrivici
+                      Richiedi consulenza
                     </Button>
-                  </a>
+                  </Link>
                   <a href="tel:+390817511775">
                     <Button
                       variant="outline"
