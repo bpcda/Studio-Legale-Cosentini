@@ -157,12 +157,16 @@ const SentenceManager = () => {
     }
 
     const isTeamMember = authorType !== "external";
+    const teamMemberName = isTeamMember
+      ? teamMembers.find((m) => m.id === authorType)?.full_name || null
+      : null;
+
     const payload = {
       title: title.trim(),
       comment: comment.trim(),
       tags,
       pdf_url,
-      author_name: isTeamMember ? null : (externalAuthorName.trim() || "Autore esterno"),
+      author_name: isTeamMember ? teamMemberName : (externalAuthorName.trim() || "Autore esterno"),
       author_team_member_id: isTeamMember ? authorType : null,
     };
 
