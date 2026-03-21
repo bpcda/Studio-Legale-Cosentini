@@ -50,7 +50,7 @@ const navItems = [
   { label: "Lo Studio", href: "/lo-studio", isRoute: true },
   { label: "Servizi", href: "#servizi" },
   { label: "Sentenze", href: "/sentenze-commentate", isRoute: true },
-  { label: "Articoli", href: "#articoli" },
+  { label: "Articoli", href: "/articoli", isRoute: true },
   { label: "Contatti", href: "#contatti" },
 ];
 
