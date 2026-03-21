@@ -327,39 +327,56 @@ const Index = () => {
             </p>
           </ScrollReveal>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {placeholderArticles.map((article, i) => (
-              <ScrollReveal key={i} delay={i * 100}>
-                <article className="group h-full flex flex-col p-6 rounded-lg border border-border bg-card hover:shadow-lg hover:shadow-foreground/5 transition-all duration-300">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-                    <Calendar size={12} />
-                    <time dateTime={article.date}>
-                      {new Date(article.date).toLocaleDateString("it-IT", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </time>
-                  </div>
-                  <h3 className="font-serif text-lg font-semibold text-foreground mb-3 leading-snug group-hover:text-accent transition-colors">
-                    {article.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed flex-1" style={{ overflowWrap: "break-word" }}>
-                    {article.excerpt}
-                  </p>
-                  <a
-                    href={article.url}
-                    className="inline-flex items-center gap-1.5 text-sm text-accent font-medium mt-4 hover:underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Leggi l'articolo
-                    <ExternalLink size={13} />
-                  </a>
-                </article>
-              </ScrollReveal>
-            ))}
-          </div>
+          {articlesLoading ? (
+            <div className="grid md:grid-cols-3 gap-8">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="p-6 rounded-lg border border-border bg-card space-y-4">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-8">
+              {articles.slice(0, 5).map((article, i) => (
+                <ScrollReveal key={article.id} delay={i * 100}>
+                  <article className="group h-full flex flex-col p-6 rounded-lg border border-border bg-card hover:shadow-lg hover:shadow-foreground/5 transition-all duration-300">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+                      <Calendar size={12} />
+                      <time dateTime={article.date}>
+                        {new Date(article.date).toLocaleDateString("it-IT", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </time>
+                      {article.source && (
+                        <span className="ml-auto text-accent/70 text-[11px] font-medium uppercase tracking-wider">{article.source}</span>
+                      )}
+                    </div>
+                    <h3 className="font-serif text-lg font-semibold text-foreground mb-3 leading-snug group-hover:text-accent transition-colors">
+                      {article.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed flex-1" style={{ overflowWrap: "break-word" }}>
+                      {article.excerpt}
+                    </p>
+                    <a
+                      href={article.url}
+                      className="inline-flex items-center gap-1.5 text-sm text-accent font-medium mt-4 hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Leggi l'articolo
+                      <ExternalLink size={13} />
+                    </a>
+                  </article>
+                </ScrollReveal>
+              ))}
+            </div>
+          )}
 
           <ScrollReveal delay={300}>
             <div className="text-center mt-12">
