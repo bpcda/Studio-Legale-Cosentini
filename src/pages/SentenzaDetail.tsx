@@ -14,6 +14,8 @@ interface Sentence {
   tags: string[];
   comment: string;
   pdf_url: string;
+  author_name: string | null;
+  author_team_member_id: string | null;
   created_at: string;
 }
 
