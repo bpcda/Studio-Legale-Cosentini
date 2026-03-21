@@ -285,6 +285,11 @@ const Dashboard = () => {
           <TabsContent value="sentenze">
             <SentenceManager />
           </TabsContent>
+
+          {/* Team Tab */}
+          <TabsContent value="team">
+            <TeamManager />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
