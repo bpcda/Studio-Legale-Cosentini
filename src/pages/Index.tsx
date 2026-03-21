@@ -66,6 +66,7 @@ const Logo = ({ className = "h-10" }: { className?: string }) => (
 
 const Index = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { articles, isLoading: articlesLoading } = useLinkedInArticles();
 
   const jsonLd = {
     "@context": "https://schema.org",
