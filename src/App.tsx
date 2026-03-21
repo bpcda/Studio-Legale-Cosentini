@@ -12,6 +12,8 @@ import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import SentenzeCommentate from "./pages/SentenzeCommentate.tsx";
 import SentenzaDetail from "./pages/SentenzaDetail.tsx";
+import Articoli from "./pages/Articoli.tsx";
+import ArticoloDetail from "./pages/ArticoloDetail.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import CookiePolicy from "./pages/CookiePolicy.tsx";
 import LoStudio from "./pages/LoStudio.tsx";
@@ -33,6 +35,8 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/sentenze-commentate" element={<SentenzeCommentate />} />
             <Route path="/sentenze-commentate/:id" element={<SentenzaDetail />} />
+            <Route path="/articoli" element={<Articoli />} />
+            <Route path="/articoli/:id" element={<ArticoloDetail />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/cookie-policy" element={<CookiePolicy />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

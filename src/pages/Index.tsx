@@ -1,11 +1,11 @@
-import { Phone, Mail, MapPin, Scale, FileText, Shield, Landmark, Briefcase, Building2, ChevronDown, Menu, X, ExternalLink, Calendar } from "lucide-react";
+import { Phone, Mail, MapPin, Scale, FileText, Shield, Landmark, Briefcase, Building2, ChevronDown, Menu, X, ExternalLink, Calendar, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import ScrollReveal from "@/components/ScrollReveal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import logoCosentini from "@/assets/logo-cosentini.png";
-import { useLinkedInArticles } from "@/hooks/useLinkedInArticles";
+import { supabase } from "@/lib/supabase";
 
 const services = [
   {
@@ -50,7 +50,7 @@ const navItems = [
   { label: "Lo Studio", href: "/lo-studio", isRoute: true },
   { label: "Servizi", href: "#servizi" },
   { label: "Sentenze", href: "/sentenze-commentate", isRoute: true },
-  { label: "Articoli", href: "#articoli" },
+  { label: "Articoli", href: "/articoli", isRoute: true },
   { label: "Contatti", href: "#contatti" },
 ];
 
@@ -68,7 +68,25 @@ const Logo = ({ className = "h-10" }: { className?: string }) => (
 
 const Index = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { articles, isLoading: articlesLoading } = useLinkedInArticles();
+  const [articles, setArticles] = useState<any[]>([]);
+  const [articlesLoading, setArticlesLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      if (!supabase) {
+        setArticlesLoading(false);
+        return;
+      }
+      const { data } = await supabase
+        .from("articles")
+        .select("*")
+        .order("date", { ascending: false })
+        .limit(6);
+      if (data) setArticles(data);
+      setArticlesLoading(false);
+    };
+    fetchArticles();
+  }, []);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -311,57 +329,73 @@ const Index = () => {
                 </div>
               ))}
             </div>
+          ) : articles.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <FileText className="h-10 w-10 mx-auto mb-3 opacity-40" />
+              <p>Nessun articolo pubblicato al momento.</p>
+            </div>
           ) : (
             <div className="grid md:grid-cols-3 gap-8">
-              {articles.slice(0, 5).map((article, i) => (
-                <ScrollReveal key={article.id} delay={i * 100}>
-                  <article className="group h-full flex flex-col p-6 rounded-lg border border-border bg-card hover:shadow-lg hover:shadow-foreground/5 transition-all duration-300">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-                      <Calendar size={12} />
-                      <time dateTime={article.date}>
-                        {new Date(article.date).toLocaleDateString("it-IT", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
-                      </time>
-                      {article.source && (
-                        <span className="ml-auto text-accent/70 text-[11px] font-medium uppercase tracking-wider">{article.source}</span>
+              {articles.map((article, i) => {
+                const isExt = !!article.external_url;
+                const excerpt = article.excerpt || article.content || "";
+                const words = excerpt.split(/\s+/);
+                const truncated = words.length > 30 ? words.slice(0, 30).join(" ") + "…" : excerpt;
+
+                return (
+                  <ScrollReveal key={article.id} delay={i * 100}>
+                    <article className="group h-full flex flex-col p-6 rounded-lg border border-border bg-card hover:shadow-lg hover:shadow-foreground/5 transition-all duration-300">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+                        <Calendar size={12} />
+                        <time dateTime={article.date}>
+                          {new Date(article.date).toLocaleDateString("it-IT", {
+                            day: "numeric", month: "long", year: "numeric",
+                          })}
+                        </time>
+                        {isExt && (
+                          <span className="ml-auto text-accent/70 text-[11px] font-medium uppercase tracking-wider">Esterno</span>
+                        )}
+                      </div>
+                      <h3 className="font-serif text-lg font-semibold text-foreground mb-3 leading-snug group-hover:text-accent transition-colors">
+                        {article.title}
+                      </h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed flex-1" style={{ overflowWrap: "break-word" }}>
+                        {truncated}
+                      </p>
+                      {isExt ? (
+                        <a
+                          href={article.external_url}
+                          className="inline-flex items-center gap-1.5 text-sm text-accent font-medium mt-4 hover:underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Leggi l'articolo
+                          <ExternalLink size={13} />
+                        </a>
+                      ) : (
+                        <Link
+                          to={`/articoli/${article.id}`}
+                          className="inline-flex items-center gap-1.5 text-sm text-accent font-medium mt-4 hover:underline"
+                        >
+                          Leggi l'articolo
+                          <BookOpen size={13} />
+                        </Link>
                       )}
-                    </div>
-                    <h3 className="font-serif text-lg font-semibold text-foreground mb-3 leading-snug group-hover:text-accent transition-colors">
-                      {article.title}
-                    </h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed flex-1" style={{ overflowWrap: "break-word" }}>
-                      {article.excerpt}
-                    </p>
-                    <a
-                      href={article.url}
-                      className="inline-flex items-center gap-1.5 text-sm text-accent font-medium mt-4 hover:underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Leggi l'articolo
-                      <ExternalLink size={13} />
-                    </a>
-                  </article>
-                </ScrollReveal>
-              ))}
+                    </article>
+                  </ScrollReveal>
+                );
+              })}
             </div>
           )}
 
           <ScrollReveal delay={300}>
             <div className="text-center mt-12">
-              <a
-                href="https://www.linkedin.com/in/scosentini/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <Link to="/articoli">
                 <Button variant="outline" className="gap-2 active:scale-[0.97] transition-transform">
-                  Segui su LinkedIn
-                  <ExternalLink size={14} />
+                  Tutti gli articoli
+                  <BookOpen size={14} />
                 </Button>
-              </a>
+              </Link>
             </div>
           </ScrollReveal>
         </div>
