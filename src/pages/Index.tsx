@@ -338,8 +338,8 @@ const Index = () => {
             <div className="grid md:grid-cols-3 gap-8">
               {articles.map((article, i) => {
                 const isExt = !!article.external_url;
-                const excerpt = article.excerpt || article.content || "";
-                const words = excerpt.split(/\s+/);
+                const excerpt = (article.excerpt || article.content || "").replace(/<[^>]*>/g, "");
+                const words = excerpt.split(/\s+/).filter(Boolean);
                 const truncated = words.length > 30 ? words.slice(0, 30).join(" ") + "…" : excerpt;
 
                 return (
