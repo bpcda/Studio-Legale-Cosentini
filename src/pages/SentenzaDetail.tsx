@@ -121,9 +121,10 @@ const SentenzaDetail = () => {
         <ScrollReveal delay={100}>
           <div className="mb-8">
             <h2 className="text-lg font-medium text-foreground mb-3">Commento</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line max-w-prose">
-              {sentence.comment}
-            </p>
+            <div
+              className="prose prose-sm max-w-none text-muted-foreground leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: sentence.comment }}
+            />
           </div>
         </ScrollReveal>
 

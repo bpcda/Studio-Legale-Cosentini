@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "@/components/RichTextEditor";
 import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -240,11 +240,10 @@ const SentenceManager = () => {
             onChange={(e) => setTitle(e.target.value)}
           />
 
-          <Textarea
+          <RichTextEditor
+            content={comment}
+            onChange={setComment}
             placeholder="Scrivi il commento alla sentenza..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            rows={5}
           />
 
           {/* Author */}

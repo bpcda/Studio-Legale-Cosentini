@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "@/components/RichTextEditor";
 import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -231,11 +232,10 @@ const ArticleManager = () => {
               onChange={(e) => setExternalUrl(e.target.value)}
             />
           ) : (
-            <Textarea
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
               placeholder="Contenuto completo dell'articolo..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={8}
             />
           )}
 
