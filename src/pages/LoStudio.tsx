@@ -1,4 +1,5 @@
 import { Phone, Mail, MapPin, ChevronRight, ArrowLeft } from "lucide-react";
+import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
