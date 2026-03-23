@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Send, Video, MapPin, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
