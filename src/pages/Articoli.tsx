@@ -20,9 +20,12 @@ interface Article {
   created_at: string;
 }
 
+const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "");
+
 const truncate = (text: string, wordLimit: number) => {
-  const words = text.split(/\s+/);
-  return words.length > wordLimit ? words.slice(0, wordLimit).join(" ") + "…" : text;
+  const plain = stripHtml(text);
+  const words = plain.split(/\s+/).filter(Boolean);
+  return words.length > wordLimit ? words.slice(0, wordLimit).join(" ") + "…" : plain;
 };
 
 const Articoli = () => {

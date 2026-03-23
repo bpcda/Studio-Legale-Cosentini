@@ -137,10 +137,11 @@ const SentenzeCommentate = () => {
 
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {(() => {
-                      const words = s.comment.split(/\s+/);
+                      const plain = s.comment.replace(/<[^>]*>/g, "");
+                      const words = plain.split(/\s+/).filter(Boolean);
                       return words.length > 50
                         ? words.slice(0, 50).join(" ") + "…"
-                        : s.comment;
+                        : plain;
                     })()}
                   </p>
                 </article>
