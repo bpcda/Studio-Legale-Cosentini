@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoCosentini from "@/assets/logo-cosentini.png";
+import SEO from "@/components/SEO";
 
 const PrivacyPolicy = () => {
   return (
