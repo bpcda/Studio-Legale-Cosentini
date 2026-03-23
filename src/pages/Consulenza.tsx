@@ -120,6 +120,11 @@ const Consulenza = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Richiedi una Consulenza"
+        description="Richiedi una consulenza legale allo Studio Legale Cosentini. Disponibile in presenza a Napoli e Roma o in videoconferenza."
+        path="/consulenza"
+      />
       {/* Header */}
       <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">

@@ -39,6 +39,11 @@ const SentenzeCommentate = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Sentenze Commentate"
+        description="Raccolta di sentenze rilevanti con analisi e commento a cura dello Studio Legale Cosentini."
+        path="/sentenze-commentate"
+      />
       {/* Header */}
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
