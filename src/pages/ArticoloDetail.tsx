@@ -116,11 +116,10 @@ const ArticoloDetail = () => {
         </ScrollReveal>
 
         <ScrollReveal delay={100}>
-          <div className="prose prose-sm max-w-none">
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line max-w-prose">
-              {article.content}
-            </p>
-          </div>
+          <div
+            className="prose prose-sm max-w-none text-muted-foreground leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: article.content || "" }}
+          />
         </ScrollReveal>
       </main>
     </div>

@@ -240,11 +240,10 @@ const SentenceManager = () => {
             onChange={(e) => setTitle(e.target.value)}
           />
 
-          <Textarea
+          <RichTextEditor
+            content={comment}
+            onChange={setComment}
             placeholder="Scrivi il commento alla sentenza..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            rows={5}
           />
 
           {/* Author */}

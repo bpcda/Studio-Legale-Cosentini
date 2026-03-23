@@ -232,11 +232,10 @@ const ArticleManager = () => {
               onChange={(e) => setExternalUrl(e.target.value)}
             />
           ) : (
-            <Textarea
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
               placeholder="Contenuto completo dell'articolo..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={8}
             />
           )}
 
