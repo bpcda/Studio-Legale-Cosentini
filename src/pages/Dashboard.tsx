@@ -74,6 +74,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [viewingRequest, setViewingRequest] = useState<ConsultationRequest | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/login");
