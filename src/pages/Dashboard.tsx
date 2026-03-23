@@ -268,21 +268,32 @@ const Dashboard = () => {
                             })}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Select
-                              value={req.status}
-                              onValueChange={(val) => updateStatus(req.id, val)}
-                              disabled={updatingId === req.id}
-                            >
-                              <SelectTrigger className="w-32 h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">In attesa</SelectItem>
-                                <SelectItem value="accepted">Accettata</SelectItem>
-                                <SelectItem value="completed">Completata</SelectItem>
-                                <SelectItem value="rejected">Rifiutata</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div className="flex items-center gap-1 justify-end">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setViewingRequest(req)}
+                                title="Visualizza messaggio"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Select
+                                value={req.status}
+                                onValueChange={(val) => updateStatus(req.id, val)}
+                                disabled={updatingId === req.id}
+                              >
+                                <SelectTrigger className="w-32 h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">In attesa</SelectItem>
+                                  <SelectItem value="accepted">Accettata</SelectItem>
+                                  <SelectItem value="completed">Completata</SelectItem>
+                                  <SelectItem value="rejected">Rifiutata</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
