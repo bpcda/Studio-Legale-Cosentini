@@ -73,6 +73,14 @@ const SentenzaDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={sentence.title}
+        description={sentence.comment?.replace(/<[^>]*>/g, "").slice(0, 155) + "…"}
+        path={`/sentenze-commentate/${sentence.id}`}
+        type="article"
+        articleDate={sentence.created_at}
+        articleAuthor={sentence.author_name || undefined}
+      />
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
