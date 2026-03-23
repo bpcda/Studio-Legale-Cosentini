@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ScrollReveal from "@/components/ScrollReveal";
 import { ArrowLeft, Calendar, FileText } from "lucide-react";
 import logoCosentini from "@/assets/logo-cosentini.png";
+import SEO from "@/components/SEO";
 
 interface Article {
   id: string;
