@@ -6,6 +6,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import { useState, useEffect } from "react";
 import logoCosentini from "@/assets/logo-cosentini.png";
 import { supabase } from "@/lib/supabase";
+import SEO from "@/components/SEO";
 
 const services = [
   {
@@ -115,10 +116,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* JSON-LD structured data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      <SEO
+        path="/"
+        jsonLd={jsonLd}
       />
 
       {/* Top bar with contacts — always visible */}

@@ -1,4 +1,5 @@
 import { Phone, Mail, MapPin, ChevronRight, ArrowLeft } from "lucide-react";
+import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -39,6 +40,11 @@ const LoStudio = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Lo Studio"
+        description="Scopri lo Studio Legale Cosentini: chi siamo, le nostre competenze e il nostro team di avvocati a Napoli e Roma."
+        path="/lo-studio"
+      />
       {/* Nav */}
       <nav className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">

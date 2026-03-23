@@ -2,10 +2,12 @@ import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoCosentini from "@/assets/logo-cosentini.png";
+import SEO from "@/components/SEO";
 
 const CookiePolicy = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Cookie Policy" description="Informativa sull'uso dei cookie dello Studio Legale Cosentini." path="/cookie-policy" />
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
