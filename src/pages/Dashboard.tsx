@@ -20,7 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LogOut, RefreshCw, Calendar, Phone, Mail, User, Filter, FileText, MessageSquare, Users, BookOpen } from "lucide-react";
+import { LogOut, RefreshCw, Calendar, Phone, Mail, User, Filter, FileText, MessageSquare, Users, BookOpen, Eye } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import logoCosentini from "@/assets/logo-cosentini.png";
 import SentenceManager from "@/components/dashboard/SentenceManager";
 import TeamManager from "@/components/dashboard/TeamManager";
@@ -68,6 +74,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [viewingRequest, setViewingRequest] = useState<ConsultationRequest | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/login");
@@ -261,21 +268,32 @@ const Dashboard = () => {
                             })}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Select
-                              value={req.status}
-                              onValueChange={(val) => updateStatus(req.id, val)}
-                              disabled={updatingId === req.id}
-                            >
-                              <SelectTrigger className="w-32 h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">In attesa</SelectItem>
-                                <SelectItem value="accepted">Accettata</SelectItem>
-                                <SelectItem value="completed">Completata</SelectItem>
-                                <SelectItem value="rejected">Rifiutata</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div className="flex items-center gap-1 justify-end">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setViewingRequest(req)}
+                                title="Visualizza messaggio"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Select
+                                value={req.status}
+                                onValueChange={(val) => updateStatus(req.id, val)}
+                                disabled={updatingId === req.id}
+                              >
+                                <SelectTrigger className="w-32 h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">In attesa</SelectItem>
+                                  <SelectItem value="accepted">Accettata</SelectItem>
+                                  <SelectItem value="completed">Completata</SelectItem>
+                                  <SelectItem value="rejected">Rifiutata</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -284,6 +302,61 @@ const Dashboard = () => {
                 </Table>
               </div>
             )}
+
+            {/* Message Dialog */}
+            <Dialog open={!!viewingRequest} onOpenChange={() => setViewingRequest(null)}>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Dettagli richiesta
+                  </DialogTitle>
+                </DialogHeader>
+                {viewingRequest && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-muted-foreground text-xs">Nome</p>
+                        <p className="font-medium">{viewingRequest.full_name}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">Email</p>
+                        <p className="font-medium">{viewingRequest.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">Telefono</p>
+                        <p className="font-medium">{viewingRequest.phone}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">Servizio</p>
+                        <p className="font-medium">{serviceLabels[viewingRequest.service_type] ?? viewingRequest.service_type}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">Modalità</p>
+                        <p className="font-medium">{modeLabels[viewingRequest.consultation_mode] ?? viewingRequest.consultation_mode}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">Stato</p>
+                        <Badge variant={statusConfig[viewingRequest.status]?.variant ?? "secondary"}>
+                          {statusConfig[viewingRequest.status]?.label ?? viewingRequest.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground text-xs mb-1">Messaggio</p>
+                      <div className="bg-muted/50 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-64 overflow-y-auto">
+                        {viewingRequest.message}
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Ricevuta il {new Date(viewingRequest.created_at).toLocaleDateString("it-IT", {
+                        day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* Sentenze Tab */}
