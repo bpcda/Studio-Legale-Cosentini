@@ -6,6 +6,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import { useState, useEffect } from "react";
 import logoCosentini from "@/assets/logo-cosentini.png";
 import { supabase } from "@/lib/supabase";
+import SEO from "@/components/SEO";
 
 const services = [
   {
