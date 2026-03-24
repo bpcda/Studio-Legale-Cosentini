@@ -88,7 +88,7 @@ serve(async (req) => {
     // Send both emails
     const sendEmail = async (to: string[], subject: string, html: string, replyTo?: string) => {
       const body: Record<string, unknown> = {
-        from: "Studio Legale Cosentini <noreply@cosentini.it>",
+        from: "Studio Legale Cosentini <consulenze@cosentini.it>",
         to,
         subject,
         html,
