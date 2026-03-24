@@ -90,17 +90,8 @@
   }
 }
 
-/* Preserve TipTap rich-text inline styles inside prose containers */
-.prose [style] {
-  color: revert;
-  font-family: revert;
-  font-size: revert;
-  text-align: revert;
-  background-color: revert;
-}
+/* TipTap rich-text: ensure inline styles from editor are preserved in prose containers */
 .prose mark {
-  background-color: revert;
-  color: inherit;
   padding: 0.125em 0.25em;
   border-radius: 0.125em;
 }
