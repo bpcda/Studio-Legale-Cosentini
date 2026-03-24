@@ -90,18 +90,11 @@
   }
 }
 
-/* Preserve TipTap/rich-text inline styles inside prose containers */
-.rich-text-content [style] {
-  font-family: inherit;
-}
-.rich-text-content [style*="color:"] {
-  color: unset;
-}
-.rich-text-content mark {
-  background-color: unset;
-  color: inherit;
-}
-.rich-text-content mark[data-color] {
-  background-color: unset;
-}
+/* Preserve TipTap rich-text inline styles inside prose containers */
+.prose [style*="color"] { color: unset; }
+.prose [style*="font-family"] { font-family: unset; }
+.prose [style*="font-size"] { font-size: unset; }
+.prose [style*="text-align"] { text-align: unset; }
+.prose [style*="background"] { background-color: unset; }
+.prose mark { background-color: revert; color: inherit; }
 
