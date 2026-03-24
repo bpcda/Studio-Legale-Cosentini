@@ -126,7 +126,7 @@ const ArticoloDetail = () => {
 
         <ScrollReveal delay={100}>
           <div
-            className="prose prose-sm max-w-none text-foreground leading-relaxed [&_[style]]:!text-[unset] [&_[style]]:!font-[unset]"
+            className="prose prose-sm max-w-none text-foreground leading-relaxed"
             dangerouslySetInnerHTML={{ __html: article.content || "" }}
           />
         </ScrollReveal>

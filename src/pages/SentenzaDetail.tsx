@@ -131,7 +131,7 @@ const SentenzaDetail = () => {
           <div className="mb-8">
             <h2 className="text-lg font-medium text-foreground mb-3">Commento</h2>
             <div
-              className="prose prose-sm max-w-none text-foreground leading-relaxed [&_[style]]:!text-[unset] [&_[style]]:!font-[unset]"
+              className="prose prose-sm max-w-none text-foreground leading-relaxed"
               dangerouslySetInnerHTML={{ __html: sentence.comment }}
             />
           </div>
