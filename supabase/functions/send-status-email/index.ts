@@ -33,7 +33,13 @@ const statusMessages: Record<string, { subject: string; heading: string; body: s
   completed: {
     subject: "Consulenza completata — Studio Legale Cosentini",
     heading: "Consulenza Completata",
-    body: "La informiamo che la Sua pratica di consulenza è stata <strong>completata</strong>. La ringraziamo per la fiducia accordata al nostro Studio. Per qualsiasi ulteriore necessità, non esiti a contattarci.",
+    body: `La informiamo che la Sua pratica di consulenza è stata <strong>completata</strong>. La ringraziamo per la fiducia accordata al nostro Studio. Per qualsiasi ulteriore necessità, non esiti a contattarci.
+        </p>
+        <div style="margin-top:28px;margin-bottom:28px;text-align:center;">
+          <p style="color:#555;font-size:14px;margin-bottom:12px;">La Sua opinione è importante per noi. Se è soddisfatto del servizio ricevuto, Le saremmo grati se potesse dedicare un momento per lasciarci una recensione su Google:</p>
+          <a href="https://g.page/r/CQTJq4z92TOTEBM/review" target="_blank" style="display:inline-block;background-color:#b8860b;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-weight:bold;font-size:15px;">Lascia una recensione ⭐</a>
+        </div>
+        <p style="line-height:1.6;">`,
   },
 };
 
