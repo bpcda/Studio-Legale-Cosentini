@@ -106,6 +106,19 @@ const Dashboard = () => {
       setRequests((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
       );
+
+      // Send status notification email (fire-and-forget)
+      const request = requests.find((r) => r.id === id);
+      if (request && ["accepted", "rejected", "completed"].includes(newStatus)) {
+        supabase.functions.invoke("send-status-email", {
+          body: {
+            full_name: request.full_name,
+            email: request.email,
+            service_type: request.service_type,
+            new_status: newStatus,
+          },
+        }).catch((err) => console.error("Status email error:", err));
+      }
     }
     setUpdatingId(null);
   };
