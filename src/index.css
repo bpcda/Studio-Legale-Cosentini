@@ -90,25 +90,8 @@
   }
 }
 
-/* Ensure TipTap inline styles override Tailwind Typography defaults */
-.prose [style*="color:"] {
-  color: unset !important;
-}
-.prose [style*="font-family:"] {
-  font-family: unset !important;
-}
-.prose [style*="font-size:"] {
-  font-size: unset !important;
-}
-.prose [style*="text-align:"] {
-  text-align: unset !important;
-}
-.prose [style*="background-color:"] {
-  background-color: unset !important;
-}
+/* TipTap rich-text: ensure inline styles from editor are preserved in prose containers */
 .prose mark {
-  background-color: revert !important;
-  color: inherit;
   padding: 0.125em 0.25em;
   border-radius: 0.125em;
 }
