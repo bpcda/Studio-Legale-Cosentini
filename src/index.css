@@ -89,3 +89,26 @@
     font-family: 'Cormorant Garamond', serif;
   }
 }
+
+/* Preserve TipTap/rich-text inline styles inside prose containers */
+.prose [style] {
+  color: inherit;
+}
+.prose [style*="color"] {
+  color: var(--tw-prose-body);
+}
+/* Allow all inline styles to override prose defaults */
+.prose h1[style], .prose h2[style], .prose h3[style],
+.prose h4[style], .prose h5[style], .prose h6[style],
+.prose p[style], .prose span[style], .prose li[style],
+.prose strong[style], .prose em[style], .prose u[style],
+.prose a[style], .prose blockquote[style] {
+  all: revert;
+  margin: revert;
+  padding: revert;
+  display: revert;
+}
+.prose [style*="color"] {
+  color: attr(style) !important;
+}
+
