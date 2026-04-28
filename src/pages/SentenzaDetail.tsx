@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { databases, isConfigured, DB_ID, COLLECTIONS, normalizeDoc } from "@/lib/appwrite";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,13 +27,13 @@ const SentenzaDetail = () => {
 
   useEffect(() => {
     const fetchSentence = async () => {
-      if (!supabase || !id) return;
-      const { data } = await supabase
-        .from("commented_sentences")
-        .select("*")
-        .eq("id", id)
-        .single();
-      if (data) setSentence(data);
+      if (!isConfigured || !id) return;
+      try {
+        const doc = await databases.getDocument(DB_ID, COLLECTIONS.commented_sentences, id);
+        setSentence(normalizeDoc<Sentence>(doc));
+      } catch (err) {
+        console.error("fetchSentence error:", err);
+      }
       setLoading(false);
     };
     fetchSentence();

@@ -11,6 +11,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import ScrollReveal from "@/components/ScrollReveal";
 import logoCosentini from "@/assets/logo-cosentini.png";
+import {
+  account,
+  databases,
+  functions,
+  isConfigured,
+  ID,
+  Permission,
+  Role,
+  DB_ID,
+  COLLECTIONS,
+  FUNCTIONS,
+} from "@/lib/appwrite";
 
 const serviceTypes = [
   { value: "generico", label: "Consulenza Generica" },
@@ -33,9 +45,6 @@ Resto a disposizione per concordare data e orario.
 
 Cordiali saluti`;
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
-
 const Consulenza = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,6 +57,19 @@ const Consulenza = () => {
   const [consultationMode, setConsultationMode] = useState<string>("webcall");
 
   const isValid = fullName.trim() && email.trim() && phone.trim() && serviceType && message.trim();
+
+  /**
+   * Make sure we have *some* Appwrite session before writing the doc / invoking the function.
+   * If the visitor isn't logged in, create a short-lived anonymous session (idempotent: if one
+   * already exists, account.get() succeeds and we skip).
+   */
+  const ensureSession = async () => {
+    try {
+      await account.get();
+    } catch {
+      await account.createAnonymousSession();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,37 +84,36 @@ const Consulenza = () => {
       service_type: serviceType,
       message: message.trim(),
       consultation_mode: consultationMode,
+      status: "pending",
     };
 
     try {
-      // Try Supabase first
-      if (SUPABASE_URL && SUPABASE_KEY) {
-        const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/consultation_requests`,
-          {
-            method: "POST",
-            headers: {
-              apikey: SUPABASE_KEY,
-              Authorization: `Bearer ${SUPABASE_KEY}`,
-              "Content-Type": "application/json",
-              Prefer: "return=minimal",
-            },
-            body: JSON.stringify(payload),
-          }
+      if (isConfigured) {
+        await ensureSession();
+
+        // Store the request. Per-document permissions: only admins can read/update/delete.
+        await databases.createDocument(
+          DB_ID,
+          COLLECTIONS.consultation_requests,
+          ID.unique(),
+          payload,
+          [
+            Permission.read(Role.label("admin")),
+            Permission.update(Role.label("admin")),
+            Permission.delete(Role.label("admin")),
+          ]
         );
 
-        if (res.ok) {
-          // Trigger email edge function (fire-and-forget)
-          fetch(`${SUPABASE_URL}/functions/v1/send-consultation-email`, {
-            method: "POST",
-            headers: {
-              apikey: SUPABASE_KEY,
-              Authorization: `Bearer ${SUPABASE_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          }).catch(() => {});
-        }
+        // Fire-and-forget email notification
+        functions
+          .createExecution(
+            FUNCTIONS.send_consultation_email,
+            JSON.stringify(payload),
+            true, // async
+            "/",
+            "POST" as any
+          )
+          .catch((err) => console.error("Email function error:", err));
       }
 
       toast({
@@ -100,14 +121,14 @@ const Consulenza = () => {
         description: "La contatteremo al più presto per concordare la consulenza.",
       });
 
-      // Reset form
       setFullName("");
       setEmail("");
       setPhone("");
       setServiceType("");
       setMessage(MESSAGE_TEMPLATE);
       setConsultationMode("webcall");
-    } catch {
+    } catch (err) {
+      console.error("Submit error:", err);
       toast({
         title: "Errore",
         description: "Si è verificato un errore. Riprovi o ci contatti telefonicamente.",
@@ -214,7 +235,6 @@ const Consulenza = () => {
           <div className="md:col-span-3">
             <ScrollReveal delay={80}>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Name */}
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Nome completo *</Label>
                   <Input
@@ -227,7 +247,6 @@ const Consulenza = () => {
                   />
                 </div>
 
-                {/* Email + Phone row */}
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email *</Label>
@@ -255,7 +274,6 @@ const Consulenza = () => {
                   </div>
                 </div>
 
-                {/* Service type */}
                 <div className="space-y-2">
                   <Label>Tipo di servizio *</Label>
                   <Select value={serviceType} onValueChange={setServiceType} required>
@@ -272,7 +290,6 @@ const Consulenza = () => {
                   </Select>
                 </div>
 
-                {/* Message */}
                 <div className="space-y-2">
                   <Label htmlFor="message">Messaggio *</Label>
                   <Textarea
@@ -286,7 +303,6 @@ const Consulenza = () => {
                   />
                 </div>
 
-                {/* Consultation mode */}
                 <div className="space-y-3">
                   <Label>Modalità di consulenza preferita *</Label>
                   <RadioGroup value={consultationMode} onValueChange={setConsultationMode} className="grid sm:grid-cols-2 gap-3">

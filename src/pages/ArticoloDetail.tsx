@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { databases, isConfigured, DB_ID, COLLECTIONS, normalizeDoc } from "@/lib/appwrite";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,13 +28,13 @@ const ArticoloDetail = () => {
 
   useEffect(() => {
     const fetchArticle = async () => {
-      if (!supabase || !id) return;
-      const { data } = await supabase
-        .from("articles")
-        .select("*")
-        .eq("id", id)
-        .single();
-      if (data) setArticle(data);
+      if (!isConfigured || !id) return;
+      try {
+        const doc = await databases.getDocument(DB_ID, COLLECTIONS.articles, id);
+        setArticle(normalizeDoc<Article>(doc));
+      } catch (err) {
+        console.error("fetchArticle error:", err);
+      }
       setLoading(false);
     };
     fetchArticle();

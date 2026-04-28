@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { databases, isConfigured, Query, DB_ID, COLLECTIONS, normalizeDocs } from "@/lib/appwrite";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,19 +35,23 @@ const Articoli = () => {
 
   useEffect(() => {
     const fetchArticles = async () => {
-      if (!supabase) return;
-      const { data } = await supabase
-        .from("articles")
-        .select("*")
-        .order("date", { ascending: false });
-      if (data) setArticles(data);
+      if (!isConfigured) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await databases.listDocuments(DB_ID, COLLECTIONS.articles, [
+          Query.orderDesc("date"),
+          Query.limit(100),
+        ]);
+        setArticles(normalizeDocs<Article>(res.documents));
+      } catch (err) {
+        console.error("fetchArticles error:", err);
+      }
       setLoading(false);
     };
     fetchArticles();
   }, []);
-
-  const getLink = (a: Article) =>
-    a.external_url ? a.external_url : `/articoli/${a.id}`;
 
   const isExternal = (a: Article) => !!a.external_url;
 
