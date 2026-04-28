@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ScrollReveal from "@/components/ScrollReveal";
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { databases, isConfigured, Query, DB_ID, COLLECTIONS, normalizeDocs } from "@/lib/appwrite";
 import logoCosentini from "@/assets/logo-cosentini.png";
 
 interface TeamMember {
@@ -27,12 +27,19 @@ const LoStudio = () => {
 
   useEffect(() => {
     const fetchMembers = async () => {
-      if (!supabase) return;
-      const { data } = await supabase
-        .from("team_members")
-        .select("*")
-        .order("display_order", { ascending: true });
-      if (data) setMembers(data);
+      if (!isConfigured) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await databases.listDocuments(DB_ID, COLLECTIONS.team_members, [
+          Query.orderAsc("display_order"),
+          Query.limit(100),
+        ]);
+        setMembers(normalizeDocs(res.documents));
+      } catch (err) {
+        console.error("fetchMembers error:", err);
+      }
       setLoading(false);
     };
     fetchMembers();

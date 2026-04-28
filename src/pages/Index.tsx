@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ScrollReveal from "@/components/ScrollReveal";
 import { useState, useEffect } from "react";
 import logoCosentini from "@/assets/logo-cosentini.png";
-import { supabase } from "@/lib/supabase";
+import { databases, isConfigured, Query, DB_ID, COLLECTIONS, normalizeDocs } from "@/lib/appwrite";
 import SEO from "@/components/SEO";
 
 const services = [
@@ -74,16 +74,19 @@ const Index = () => {
 
   useEffect(() => {
     const fetchArticles = async () => {
-      if (!supabase) {
+      if (!isConfigured) {
         setArticlesLoading(false);
         return;
       }
-      const { data } = await supabase
-        .from("articles")
-        .select("*")
-        .order("date", { ascending: false })
-        .limit(6);
-      if (data) setArticles(data);
+      try {
+        const res = await databases.listDocuments(DB_ID, COLLECTIONS.articles, [
+          Query.orderDesc("date"),
+          Query.limit(6),
+        ]);
+        setArticles(normalizeDocs(res.documents));
+      } catch (err) {
+        console.error("fetchArticles error:", err);
+      }
       setArticlesLoading(false);
     };
     fetchArticles();
