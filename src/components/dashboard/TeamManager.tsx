@@ -86,7 +86,7 @@ const TeamManager = () => {
       roleTitle: member.role_title || "",
       shortDesc: member.short_description || "",
       longDesc: member.long_description || "",
-      email: member.email || "",
+      email: member.email || null,
       phone: member.phone || "",
       photoFile: null,
       photoPreview: member.photo_url || null,
