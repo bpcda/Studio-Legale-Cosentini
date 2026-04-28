@@ -58,30 +58,18 @@ const FALLBACK_ARTICLES: LinkedInArticle[] = [
   },
 ];
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+import { databases, isConfigured, Query, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 
-async function fetchFromSupabase(): Promise<LinkedInArticle[] | null> {
-  if (!SUPABASE_URL || !SUPABASE_KEY) return null;
-
+async function fetchFromDb(): Promise<LinkedInArticle[] | null> {
+  if (!isConfigured) return null;
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/linkedin_articles?select=*&order=date.desc&limit=5`,
-      {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-        },
-      }
-    );
-
-    if (!res.ok) return null;
-
-    const data = await res.json();
-    if (!Array.isArray(data) || data.length === 0) return null;
-
-    return data.map((row: any) => ({
-      id: row.id,
+    const res = await databases.listDocuments(DB_ID, COLLECTIONS.linkedin_articles, [
+      Query.orderDesc("date"),
+      Query.limit(5),
+    ]);
+    if (!res.documents.length) return null;
+    return res.documents.map((row: any) => ({
+      id: row.$id,
       title: row.title,
       excerpt: row.excerpt,
       date: row.date,
@@ -101,7 +89,7 @@ export function useLinkedInArticles() {
   useEffect(() => {
     let cancelled = false;
 
-    fetchFromSupabase().then((dbArticles) => {
+    fetchFromDb().then((dbArticles) => {
       if (cancelled) return;
       if (dbArticles) {
         setArticles(dbArticles);
