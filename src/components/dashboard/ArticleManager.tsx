@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   databases, isConfigured, Query, ID, Permission, Role,
-  DB_ID, COLLECTIONS, normalizeDocs,
+  DB_ID, COLLECTIONS, normalizeDocs, cleanPayload,
 } from "@/lib/appwrite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -145,7 +145,7 @@ const ArticleManager = () => {
       ? teamMembers.find((m) => m.id === authorType)?.full_name || null
       : null;
 
-    const payload = {
+    const payload = cleanPayload({
       title: title.trim(),
       excerpt: excerpt.trim() || null,
       content: isExternal ? null : content.trim(),
@@ -154,7 +154,7 @@ const ArticleManager = () => {
       date: articleDate || new Date().toISOString().split("T")[0],
       author_name: isTeamMember ? teamMemberName : (externalAuthorName.trim() || "Autore esterno"),
       author_team_member_id: isTeamMember ? authorType : null,
-    };
+    });
 
     try {
       if (editingId) {
