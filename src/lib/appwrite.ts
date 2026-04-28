@@ -64,6 +64,29 @@ export function normalizeDocs<T extends Record<string, any>>(docs: any[]): T[] {
  * Get a public file URL from a bucket (used for storage).
  * Appwrite returns a URL that proxies the file via the SDK.
  */
+/**
+ * Cleans a payload before sending it to Appwrite:
+ *  - converts empty strings ("" or whitespace-only) to null
+ *  - drops `undefined` values
+ *
+ * Appwrite validates the FORMAT of typed attributes (email, url, ip, enum, ...)
+ * even when they are not required. An empty string is not a valid email/url,
+ * so we must send `null` instead to indicate "no value".
+ */
+export function cleanPayload<T extends Record<string, any>>(payload: T): Record<string, any> {
+  const out: Record<string, any> = {};
+  for (const [key, value] of Object.entries(payload)) {
+    if (value === undefined) continue;
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      out[key] = trimmed === "" ? null : trimmed;
+    } else {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
 export function getFileUrl(bucketId: string, fileId: string): string {
   // view endpoint returns the file inline (works for img/iframe)
   return `${endpoint}/storage/buckets/${bucketId}/files/${fileId}/view?project=${projectId}`;

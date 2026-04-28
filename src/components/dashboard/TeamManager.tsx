@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   databases, storage, isConfigured, Query, ID, Permission, Role,
-  DB_ID, COLLECTIONS, BUCKETS, normalizeDocs, getFileUrl,
+  DB_ID, COLLECTIONS, BUCKETS, normalizeDocs, getFileUrl, cleanPayload,
 } from "@/lib/appwrite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -149,7 +149,7 @@ const TeamManager = () => {
       photo_file_id = uploaded.fileId;
     }
 
-    const payload = {
+    const payload = cleanPayload({
       full_name: form.fullName.trim(),
       role_title: form.roleTitle.trim(),
       short_description: form.shortDesc.trim(),
@@ -158,7 +158,7 @@ const TeamManager = () => {
       phone: form.phone.trim(),
       photo_url,
       photo_file_id,
-    };
+    });
 
     try {
       if (editingId) {
