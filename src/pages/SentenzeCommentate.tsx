@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { databases, isConfigured, Query, DB_ID, COLLECTIONS, normalizeDocs } from "@/lib/appwrite";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,16 +25,23 @@ const SentenzeCommentate = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetch = async () => {
-      if (!supabase) return;
-      const { data } = await supabase
-        .from("commented_sentences")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (data) setSentences(data);
+    const fetchAll = async () => {
+      if (!isConfigured) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await databases.listDocuments(DB_ID, COLLECTIONS.commented_sentences, [
+          Query.orderDesc("$createdAt"),
+          Query.limit(100),
+        ]);
+        setSentences(normalizeDocs<Sentence>(res.documents));
+      } catch (err) {
+        console.error("fetchSentences error:", err);
+      }
       setLoading(false);
     };
-    fetch();
+    fetchAll();
   }, []);
 
   return (
@@ -44,7 +51,6 @@ const SentenzeCommentate = () => {
         description="Raccolta di sentenze rilevanti con analisi e commento a cura dello Studio Legale Cosentini."
         path="/sentenze-commentate"
       />
-      {/* Header */}
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">

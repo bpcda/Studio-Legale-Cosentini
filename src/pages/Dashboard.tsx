@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/lib/supabase";
+import { databases, functions, isConfigured, Query, DB_ID, COLLECTIONS, FUNCTIONS, normalizeDocs } from "@/lib/appwrite";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -81,13 +81,17 @@ const Dashboard = () => {
   }, [user, authLoading, navigate]);
 
   const fetchRequests = async () => {
-    if (!supabase) return;
+    if (!isConfigured) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from("consultation_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (!error && data) setRequests(data);
+    try {
+      const res = await databases.listDocuments(DB_ID, COLLECTIONS.consultation_requests, [
+        Query.orderDesc("$createdAt"),
+        Query.limit(200),
+      ]);
+      setRequests(normalizeDocs<ConsultationRequest>(res.documents));
+    } catch (err) {
+      console.error("fetchRequests error:", err);
+    }
     setLoading(false);
   };
 
@@ -96,29 +100,31 @@ const Dashboard = () => {
   }, [user]);
 
   const updateStatus = async (id: string, newStatus: string) => {
-    if (!supabase) return;
+    if (!isConfigured) return;
     setUpdatingId(id);
-    const { error } = await supabase
-      .from("consultation_requests")
-      .update({ status: newStatus })
-      .eq("id", id);
-    if (!error) {
-      setRequests((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
-      );
+    try {
+      await databases.updateDocument(DB_ID, COLLECTIONS.consultation_requests, id, { status: newStatus });
+      setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
 
-      // Send status notification email (fire-and-forget)
       const request = requests.find((r) => r.id === id);
       if (request && ["accepted", "rejected", "completed"].includes(newStatus)) {
-        supabase.functions.invoke("send-status-email", {
-          body: {
-            full_name: request.full_name,
-            email: request.email,
-            service_type: request.service_type,
-            new_status: newStatus,
-          },
-        }).catch((err) => console.error("Status email error:", err));
+        functions
+          .createExecution(
+            FUNCTIONS.send_status_email,
+            JSON.stringify({
+              full_name: request.full_name,
+              email: request.email,
+              service_type: request.service_type,
+              new_status: newStatus,
+            }),
+            true,
+            "/",
+            "POST" as any
+          )
+          .catch((err) => console.error("Status email error:", err));
       }
+    } catch (err) {
+      console.error("updateStatus error:", err);
     }
     setUpdatingId(null);
   };
@@ -183,9 +189,7 @@ const Dashboard = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Consulenze Tab */}
           <TabsContent value="consulenze" className="space-y-6">
-            {/* Stats */}
             <div className="grid grid-cols-3 gap-4">
               {[
                 { label: "Totali", value: counts.total, color: "text-primary" },
@@ -199,7 +203,6 @@ const Dashboard = () => {
               ))}
             </div>
 
-            {/* Controls */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
@@ -222,7 +225,6 @@ const Dashboard = () => {
               </Button>
             </div>
 
-            {/* Table */}
             {loading ? (
               <div className="flex justify-center py-12">
                 <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -316,7 +318,6 @@ const Dashboard = () => {
               </div>
             )}
 
-            {/* Message Dialog */}
             <Dialog open={!!viewingRequest} onOpenChange={() => setViewingRequest(null)}>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
@@ -372,17 +373,14 @@ const Dashboard = () => {
             </Dialog>
           </TabsContent>
 
-          {/* Sentenze Tab */}
           <TabsContent value="sentenze">
             <SentenceManager />
           </TabsContent>
 
-          {/* Articoli Tab */}
           <TabsContent value="articoli">
             <ArticleManager />
           </TabsContent>
 
-          {/* Team Tab */}
           <TabsContent value="team">
             <TeamManager />
           </TabsContent>
