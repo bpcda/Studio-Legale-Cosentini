@@ -1,0 +1,10 @@
+{
+  "name": "send-consultation-email",
+  "version": "1.0.0",
+  "description": "Sends consultation request emails (studio + confirmation to user) via Resend.",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/main.js"
+  }
+}

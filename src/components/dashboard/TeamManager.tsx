@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { supabase } from "@/lib/supabase";
+import {
+  databases, storage, isConfigured, Query, ID, Permission, Role,
+  DB_ID, COLLECTIONS, BUCKETS, normalizeDocs, getFileUrl,
+} from "@/lib/appwrite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +23,7 @@ interface TeamMember {
   email: string;
   phone: string;
   photo_url: string;
+  photo_file_id?: string | null;
   display_order: number;
   created_at: string;
 }
@@ -40,6 +44,12 @@ const emptyForm: FormData = {
   email: "", phone: "", photoFile: null, photoPreview: null,
 };
 
+const publicReadAdminWrite = [
+  Permission.read(Role.any()),
+  Permission.update(Role.label("admin")),
+  Permission.delete(Role.label("admin")),
+];
+
 const TeamManager = () => {
   const { toast } = useToast();
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -52,23 +62,23 @@ const TeamManager = () => {
   const dragOverItem = useRef<number | null>(null);
 
   const fetchMembers = useCallback(async () => {
-    if (!supabase) return;
+    if (!isConfigured) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("team_members")
-      .select("*")
-      .order("display_order", { ascending: true });
-    if (data) setMembers(data);
+    try {
+      const res = await databases.listDocuments(DB_ID, COLLECTIONS.team_members, [
+        Query.orderAsc("display_order"),
+        Query.limit(100),
+      ]);
+      setMembers(normalizeDocs<TeamMember>(res.documents));
+    } catch (err) {
+      console.error("fetchMembers error:", err);
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
 
-  const resetForm = () => {
-    setForm(emptyForm);
-    setEditingId(null);
-    setShowForm(false);
-  };
+  const resetForm = () => { setForm(emptyForm); setEditingId(null); setShowForm(false); };
 
   const startEdit = (member: TeamMember) => {
     setForm({
@@ -101,34 +111,42 @@ const TeamManager = () => {
     setForm(prev => ({ ...prev, photoFile: file, photoPreview: URL.createObjectURL(file) }));
   };
 
-  const uploadPhoto = async (file: File): Promise<string | null> => {
-    if (!supabase) return null;
-    const ext = file.name.split(".").pop();
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage.from("team-photos").upload(path, file);
-    if (error) {
-      toast({ title: "Errore upload foto", description: error.message, variant: "destructive" });
+  const uploadPhoto = async (file: File): Promise<{ url: string; fileId: string } | null> => {
+    if (!isConfigured) return null;
+    try {
+      const created = await storage.createFile(
+        BUCKETS.team_photos,
+        ID.unique(),
+        file,
+        [Permission.read(Role.any()), Permission.delete(Role.label("admin"))]
+      );
+      return { url: getFileUrl(BUCKETS.team_photos, created.$id), fileId: created.$id };
+    } catch (err: any) {
+      toast({ title: "Errore upload foto", description: err?.message, variant: "destructive" });
       return null;
     }
-    const { data: urlData } = supabase.storage.from("team-photos").getPublicUrl(path);
-    return urlData.publicUrl;
   };
 
   const handleSubmit = async () => {
-    if (!supabase || !form.fullName.trim()) {
+    if (!isConfigured || !form.fullName.trim()) {
       toast({ title: "Inserisci almeno il nome", variant: "destructive" });
       return;
     }
     setSaving(true);
 
-    let photo_url = editingId
-      ? members.find(m => m.id === editingId)?.photo_url || ""
-      : "";
+    const existing = editingId ? members.find(m => m.id === editingId) : undefined;
+    let photo_url = existing?.photo_url || "";
+    let photo_file_id: string | null = existing?.photo_file_id || null;
 
     if (form.photoFile) {
-      const url = await uploadPhoto(form.photoFile);
-      if (!url) { setSaving(false); return; }
-      photo_url = url;
+      const uploaded = await uploadPhoto(form.photoFile);
+      if (!uploaded) { setSaving(false); return; }
+      // Cleanup old file
+      if (photo_file_id) {
+        storage.deleteFile(BUCKETS.team_photos, photo_file_id).catch(() => {});
+      }
+      photo_url = uploaded.url;
+      photo_file_id = uploaded.fileId;
     }
 
     const payload = {
@@ -139,50 +157,48 @@ const TeamManager = () => {
       email: form.email.trim(),
       phone: form.phone.trim(),
       photo_url,
+      photo_file_id,
     };
 
-    if (editingId) {
-      const { error } = await supabase.from("team_members").update(payload).eq("id", editingId);
-      if (error) {
-        toast({ title: "Errore", description: error.message, variant: "destructive" });
-      } else {
+    try {
+      if (editingId) {
+        await databases.updateDocument(DB_ID, COLLECTIONS.team_members, editingId, payload);
         toast({ title: "Membro aggiornato" });
-        resetForm();
-        fetchMembers();
-      }
-    } else {
-      const { error } = await supabase.from("team_members").insert({
-        ...payload,
-        display_order: members.length,
-      });
-      if (error) {
-        toast({ title: "Errore", description: error.message, variant: "destructive" });
       } else {
+        await databases.createDocument(
+          DB_ID,
+          COLLECTIONS.team_members,
+          ID.unique(),
+          { ...payload, display_order: members.length },
+          publicReadAdminWrite
+        );
         toast({ title: "Membro aggiunto" });
-        resetForm();
-        fetchMembers();
       }
+      resetForm();
+      fetchMembers();
+    } catch (err: any) {
+      toast({ title: "Errore", description: err?.message, variant: "destructive" });
     }
     setSaving(false);
   };
 
   const deleteMember = async (id: string) => {
-    if (!supabase) return;
-    const { error } = await supabase.from("team_members").delete().eq("id", id);
-    if (!error) {
+    if (!isConfigured) return;
+    const target = members.find(m => m.id === id);
+    try {
+      await databases.deleteDocument(DB_ID, COLLECTIONS.team_members, id);
+      if (target?.photo_file_id) {
+        storage.deleteFile(BUCKETS.team_photos, target.photo_file_id).catch(() => {});
+      }
       setMembers(prev => prev.filter(m => m.id !== id));
       toast({ title: "Membro rimosso" });
+    } catch (err: any) {
+      toast({ title: "Errore", description: err?.message, variant: "destructive" });
     }
   };
 
-  // Drag & drop reorder
-  const handleDragStart = (index: number) => {
-    dragItem.current = index;
-  };
-
-  const handleDragEnter = (index: number) => {
-    dragOverItem.current = index;
-  };
+  const handleDragStart = (index: number) => { dragItem.current = index; };
+  const handleDragEnter = (index: number) => { dragOverItem.current = index; };
 
   const handleDragEnd = async () => {
     if (dragItem.current === null || dragOverItem.current === null || dragItem.current === dragOverItem.current) {
@@ -194,25 +210,22 @@ const TeamManager = () => {
     const reordered = [...members];
     const [dragged] = reordered.splice(dragItem.current, 1);
     reordered.splice(dragOverItem.current, 0, dragged);
-
-    // Update local state immediately
     const updated = reordered.map((m, i) => ({ ...m, display_order: i }));
     setMembers(updated);
 
     dragItem.current = null;
     dragOverItem.current = null;
 
-    // Persist to DB
-    if (!supabase) return;
-    const promises = updated.map(m =>
-      supabase.from("team_members").update({ display_order: m.display_order }).eq("id", m.id)
+    if (!isConfigured) return;
+    await Promise.all(
+      updated.map(m =>
+        databases.updateDocument(DB_ID, COLLECTIONS.team_members, m.id, { display_order: m.display_order })
+      )
     );
-    await Promise.all(promises);
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">Membri dello Studio</h3>
         <div className="flex items-center gap-2">
@@ -226,7 +239,6 @@ const TeamManager = () => {
         </div>
       </div>
 
-      {/* Form (add / edit) */}
       {showForm && (
         <div className="rounded-lg border border-border bg-card p-6 space-y-4">
           <p className="text-sm font-medium text-muted-foreground">
@@ -265,7 +277,6 @@ const TeamManager = () => {
             </div>
           </div>
 
-          {/* Photo upload */}
           <div className="space-y-2">
             <Label>Foto</Label>
             <div
@@ -285,13 +296,7 @@ const TeamManager = () => {
                   <p className="text-sm text-muted-foreground">Trascina una foto o clicca per selezionarla</p>
                 </div>
               )}
-              <input
-                id="team-photo-input"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
+              <input id="team-photo-input" type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
             </div>
           </div>
 
@@ -302,7 +307,6 @@ const TeamManager = () => {
         </div>
       )}
 
-      {/* List */}
       {loading ? (
         <div className="flex justify-center py-12">
           <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
