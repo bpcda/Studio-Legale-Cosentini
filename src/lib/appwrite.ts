@@ -31,8 +31,8 @@ export const COLLECTIONS = {
 } as const;
 
 export const BUCKETS = {
-  team_photos: "team-photos",
-  sentences_pdfs: "sentences-pdfs",
+  team_photos: "team_photos",
+  sentences_pdfs: "sentences_pdfs",
 } as const;
 
 export const FUNCTIONS = {
