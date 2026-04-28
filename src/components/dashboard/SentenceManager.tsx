@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   databases, storage, isConfigured, Query, ID, Permission, Role,
-  DB_ID, COLLECTIONS, BUCKETS, normalizeDocs, getFileUrl,
+  DB_ID, COLLECTIONS, BUCKETS, normalizeDocs, getFileUrl, cleanPayload,
 } from "@/lib/appwrite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -161,7 +161,7 @@ const SentenceManager = () => {
         ? teamMembers.find((m) => m.id === authorType)?.full_name || null
         : null;
 
-      const payload = {
+      const payload = cleanPayload({
         title: title.trim(),
         comment: comment.trim(),
         tags,
@@ -169,7 +169,7 @@ const SentenceManager = () => {
         pdf_file_id,
         author_name: isTeamMember ? teamMemberName : (externalAuthorName.trim() || "Autore esterno"),
         author_team_member_id: isTeamMember ? authorType : null,
-      };
+      });
 
       if (editingId) {
         await databases.updateDocument(DB_ID, COLLECTIONS.commented_sentences, editingId, payload);
