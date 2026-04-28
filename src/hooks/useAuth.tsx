@@ -1,10 +1,11 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { supabase } from "@/lib/supabase";
-import type { User, Session } from "@supabase/supabase-js";
+import { account, isConfigured } from "@/lib/appwrite";
+import type { Models } from "appwrite";
+
+type AppwriteUser = Models.User<Models.Preferences>;
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: AppwriteUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -13,44 +14,57 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AppwriteUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!supabase) {
+  const refresh = async () => {
+    if (!isConfigured) {
       setLoading(false);
       return;
     }
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    try {
+      const u = await account.get();
+      // Anonymous sessions have empty email — don't treat them as logged-in admin users
+      if (u && u.email) {
+        setUser(u as AppwriteUser);
+      } else {
+        setUser(null);
+      }
+    } catch {
+      setUser(null);
+    } finally {
       setLoading(false);
-    });
+    }
+  };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+  useEffect(() => {
+    refresh();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    if (!supabase) return { error: "Supabase non configurato" };
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error?.message ?? null };
+    if (!isConfigured) return { error: "Appwrite non configurato" };
+    try {
+      // Drop any existing (e.g. anonymous) session first
+      try { await account.deleteSession("current"); } catch { /* no session */ }
+      await account.createEmailPasswordSession(email, password);
+      const u = await account.get();
+      setUser(u as AppwriteUser);
+      return { error: null };
+    } catch (err: any) {
+      return { error: err?.message ?? "Errore di autenticazione" };
+    }
   };
 
   const signOut = async () => {
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    if (!isConfigured) return;
+    try {
+      await account.deleteSession("current");
+    } catch { /* ignore */ }
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
