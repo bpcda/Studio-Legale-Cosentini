@@ -17,7 +17,7 @@ FROM nginx:alpine
 # Copia build (Vite → dist)
 COPY --from=build /app/dist /usr/share/nginx/html
 
-COPY utils/nginx.conf /etc/nginx/conf.d/default.conf
+COPY util/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
