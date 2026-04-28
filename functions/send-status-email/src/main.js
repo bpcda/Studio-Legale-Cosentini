@@ -1,14 +1,16 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+/**
+ * Appwrite Function — send-status-email
+ * Runtime: node-20
+ * Trigger: HTTP (called from the admin Dashboard when a request status changes)
+ * Execute access: configure in Appwrite console as label `admin`
+ *
+ * Env vars (set in Coolify / Appwrite function env):
+ *   - RESEND_API_KEY   (required)
+ */
 
 const STUDIO_EMAIL = "avvocato@cosentini.it";
 
-const serviceLabels: Record<string, string> = {
+const serviceLabels = {
   generico: "Consulenza Generica",
   civile: "Diritto Civile",
   amministrativo: "Diritto Amministrativo",
@@ -19,7 +21,7 @@ const serviceLabels: Record<string, string> = {
   custodia: "Custodia e Amministrazione Giudiziaria",
 };
 
-const statusMessages: Record<string, { subject: string; heading: string; body: string }> = {
+const statusMessages = {
   accepted: {
     subject: "La Sua richiesta di consulenza è stata accettata",
     heading: "Richiesta Accettata",
@@ -43,36 +45,33 @@ const statusMessages: Record<string, { subject: string; heading: string; body: s
   },
 };
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+function escapeHtml(str = "") {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
+export default async ({ req, res, log, error }) => {
   try {
-    const { full_name, email, service_type, new_status } = await req.json();
+    const payload = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
+    const { full_name, email, service_type, new_status } = payload;
 
     if (!full_name || !email || !new_status) {
-      return new Response(
-        JSON.stringify({ error: "Campi obbligatori mancanti" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return res.json({ success: false, error: "Campi obbligatori mancanti" }, 400);
     }
 
     const statusInfo = statusMessages[new_status];
     if (!statusInfo) {
-      return new Response(
-        JSON.stringify({ error: "Stato non valido per l'invio email" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return res.json({ success: false, error: "Stato non valido per l'invio email" }, 400);
     }
 
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) {
-      console.error("RESEND_API_KEY not configured");
-      return new Response(
-        JSON.stringify({ success: false, error: "Email service not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      error("RESEND_API_KEY not configured");
+      return res.json({ success: false, error: "Email service not configured" }, 500);
     }
 
     const serviceName = serviceLabels[service_type] || service_type || "";
@@ -90,7 +89,7 @@ serve(async (req) => {
       </div>
     `;
 
-    const res = await fetch("https://api.resend.com/emails", {
+    const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${RESEND_API_KEY}`,
@@ -105,33 +104,16 @@ serve(async (req) => {
       }),
     });
 
-    const data = await res.json();
-    if (!res.ok) {
-      console.error("Resend API error:", JSON.stringify(data));
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to send email" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!r.ok) {
+      const data = await r.json().catch(() => ({}));
+      error("Resend API error: " + JSON.stringify(data));
+      return res.json({ success: false, error: "Failed to send email" }, 500);
     }
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error) {
-    console.error("Error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    log(`Status email sent to ${email} (${new_status})`);
+    return res.json({ success: true });
+  } catch (err) {
+    error("Function error: " + (err?.message || String(err)));
+    return res.json({ success: false, error: "Internal server error" }, 500);
   }
-});
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+};

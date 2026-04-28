@@ -1,0 +1,10 @@
+{
+  "name": "send-status-email",
+  "version": "1.0.0",
+  "description": "Sends status-change notification emails (accepted/rejected/completed) to consultation requesters via Resend. Includes a Google review CTA on completion.",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/main.js"
+  }
+}
