@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import {
+  databases, storage, isConfigured, Query, ID, Permission, Role,
+  DB_ID, COLLECTIONS, BUCKETS, normalizeDocs, getFileUrl,
+} from "@/lib/appwrite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import RichTextEditor from "@/components/RichTextEditor";
@@ -19,15 +22,19 @@ interface Sentence {
   tags: string[];
   comment: string;
   pdf_url: string;
+  pdf_file_id?: string | null;
   author_name: string | null;
   author_team_member_id: string | null;
   created_at: string;
 }
 
-interface TeamMember {
-  id: string;
-  full_name: string;
-}
+interface TeamMember { id: string; full_name: string; }
+
+const publicReadAdminWrite = [
+  Permission.read(Role.any()),
+  Permission.update(Role.label("admin")),
+  Permission.delete(Role.label("admin")),
+];
 
 const SentenceManager = () => {
   const { toast } = useToast();
@@ -36,7 +43,6 @@ const SentenceManager = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Form state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
@@ -44,31 +50,37 @@ const SentenceManager = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [existingPdfUrl, setExistingPdfUrl] = useState("");
+  const [existingPdfFileId, setExistingPdfFileId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
-  // Author state: "external" or a team member id
   const [authorType, setAuthorType] = useState<string>("external");
   const [externalAuthorName, setExternalAuthorName] = useState("");
 
   const fetchSentences = useCallback(async () => {
-    if (!supabase) return;
+    if (!isConfigured) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("commented_sentences")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (data) setSentences(data);
+    try {
+      const res = await databases.listDocuments(DB_ID, COLLECTIONS.commented_sentences, [
+        Query.orderDesc("$createdAt"),
+        Query.limit(200),
+      ]);
+      setSentences(normalizeDocs<Sentence>(res.documents));
+    } catch (err) {
+      console.error("fetchSentences error:", err);
+    }
     setLoading(false);
   }, []);
 
   const fetchTeamMembers = useCallback(async () => {
-    if (!supabase) return;
-    const { data } = await supabase
-      .from("team_members")
-      .select("id, full_name")
-      .order("display_order");
-    if (data) setTeamMembers(data);
+    if (!isConfigured) return;
+    try {
+      const res = await databases.listDocuments(DB_ID, COLLECTIONS.team_members, [
+        Query.orderAsc("display_order"),
+        Query.limit(100),
+      ]);
+      setTeamMembers(normalizeDocs<TeamMember>(res.documents));
+    } catch (err) { console.error(err); }
   }, []);
 
   useEffect(() => {
@@ -88,11 +100,8 @@ const SentenceManager = () => {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files[0];
-    if (file?.type === "application/pdf") {
-      setPdfFile(file);
-    } else {
-      toast({ title: "Solo file PDF", variant: "destructive" });
-    }
+    if (file?.type === "application/pdf") setPdfFile(file);
+    else toast({ title: "Solo file PDF", variant: "destructive" });
   }, [toast]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,16 +110,10 @@ const SentenceManager = () => {
   };
 
   const resetForm = () => {
-    setTitle("");
-    setComment("");
-    setTags([]);
-    setTagInput("");
-    setPdfFile(null);
-    setExistingPdfUrl("");
-    setShowForm(false);
-    setEditingId(null);
-    setAuthorType("external");
-    setExternalAuthorName("");
+    setTitle(""); setComment(""); setTags([]); setTagInput("");
+    setPdfFile(null); setExistingPdfUrl(""); setExistingPdfFileId(null);
+    setShowForm(false); setEditingId(null);
+    setAuthorType("external"); setExternalAuthorName("");
   };
 
   const startEdit = (s: Sentence) => {
@@ -119,88 +122,82 @@ const SentenceManager = () => {
     setComment(s.comment);
     setTags(s.tags || []);
     setExistingPdfUrl(s.pdf_url || "");
+    setExistingPdfFileId(s.pdf_file_id || null);
     setPdfFile(null);
-    if (s.author_team_member_id) {
-      setAuthorType(s.author_team_member_id);
-    } else {
-      setAuthorType("external");
-      setExternalAuthorName(s.author_name || "");
-    }
+    if (s.author_team_member_id) setAuthorType(s.author_team_member_id);
+    else { setAuthorType("external"); setExternalAuthorName(s.author_name || ""); }
     setShowForm(true);
   };
 
   const handleSubmit = async () => {
-    if (!supabase || !title.trim() || !comment.trim()) {
+    if (!isConfigured || !title.trim() || !comment.trim()) {
       toast({ title: "Compila titolo e commento", variant: "destructive" });
       return;
     }
 
     setSaving(true);
     let pdf_url = existingPdfUrl;
+    let pdf_file_id: string | null = existingPdfFileId;
 
-    if (pdfFile) {
-      const fileName = `${Date.now()}_${pdfFile.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("sentences-pdfs")
-        .upload(fileName, pdfFile);
+    try {
+      if (pdfFile) {
+        const file = await storage.createFile(
+          BUCKETS.sentences_pdfs,
+          ID.unique(),
+          pdfFile,
+          [Permission.read(Role.any()), Permission.delete(Role.label("admin"))]
+        );
+        pdf_file_id = file.$id;
+        pdf_url = getFileUrl(BUCKETS.sentences_pdfs, file.$id);
 
-      if (uploadError) {
-        toast({ title: "Errore upload PDF", description: uploadError.message, variant: "destructive" });
-        setSaving(false);
-        return;
+        // Best-effort cleanup of the previous PDF
+        if (existingPdfFileId) {
+          storage.deleteFile(BUCKETS.sentences_pdfs, existingPdfFileId).catch(() => {});
+        }
       }
 
-      const { data: urlData } = supabase.storage
-        .from("sentences-pdfs")
-        .getPublicUrl(uploadData.path);
-      pdf_url = urlData.publicUrl;
-    }
+      const isTeamMember = authorType !== "external";
+      const teamMemberName = isTeamMember
+        ? teamMembers.find((m) => m.id === authorType)?.full_name || null
+        : null;
 
-    const isTeamMember = authorType !== "external";
-    const teamMemberName = isTeamMember
-      ? teamMembers.find((m) => m.id === authorType)?.full_name || null
-      : null;
+      const payload = {
+        title: title.trim(),
+        comment: comment.trim(),
+        tags,
+        pdf_url,
+        pdf_file_id,
+        author_name: isTeamMember ? teamMemberName : (externalAuthorName.trim() || "Autore esterno"),
+        author_team_member_id: isTeamMember ? authorType : null,
+      };
 
-    const payload = {
-      title: title.trim(),
-      comment: comment.trim(),
-      tags,
-      pdf_url,
-      author_name: isTeamMember ? teamMemberName : (externalAuthorName.trim() || "Autore esterno"),
-      author_team_member_id: isTeamMember ? authorType : null,
-    };
-
-    if (editingId) {
-      const { error } = await supabase
-        .from("commented_sentences")
-        .update(payload)
-        .eq("id", editingId);
-      if (error) {
-        toast({ title: "Errore aggiornamento", description: error.message, variant: "destructive" });
-      } else {
+      if (editingId) {
+        await databases.updateDocument(DB_ID, COLLECTIONS.commented_sentences, editingId, payload);
         toast({ title: "Sentenza aggiornata" });
-        resetForm();
-        fetchSentences();
-      }
-    } else {
-      const { error } = await supabase.from("commented_sentences").insert(payload);
-      if (error) {
-        toast({ title: "Errore salvataggio", description: error.message, variant: "destructive" });
       } else {
+        await databases.createDocument(DB_ID, COLLECTIONS.commented_sentences, ID.unique(), payload, publicReadAdminWrite);
         toast({ title: "Sentenza pubblicata" });
-        resetForm();
-        fetchSentences();
       }
+      resetForm();
+      fetchSentences();
+    } catch (err: any) {
+      toast({ title: "Errore", description: err?.message ?? "Errore salvataggio", variant: "destructive" });
     }
     setSaving(false);
   };
 
   const deleteSentence = async (id: string) => {
-    if (!supabase) return;
-    const { error } = await supabase.from("commented_sentences").delete().eq("id", id);
-    if (!error) {
+    if (!isConfigured) return;
+    const target = sentences.find((s) => s.id === id);
+    try {
+      await databases.deleteDocument(DB_ID, COLLECTIONS.commented_sentences, id);
+      if (target?.pdf_file_id) {
+        storage.deleteFile(BUCKETS.sentences_pdfs, target.pdf_file_id).catch(() => {});
+      }
       setSentences((prev) => prev.filter((s) => s.id !== id));
       toast({ title: "Sentenza eliminata" });
+    } catch (err: any) {
+      toast({ title: "Errore", description: err?.message, variant: "destructive" });
     }
   };
 
@@ -231,22 +228,12 @@ const SentenceManager = () => {
         </div>
       </div>
 
-      {/* Form */}
       {showForm && (
         <div className="rounded-lg border border-border bg-card p-4 space-y-4">
-          <Input
-            placeholder="Titolo della sentenza"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+          <Input placeholder="Titolo della sentenza" value={title} onChange={(e) => setTitle(e.target.value)} />
 
-          <RichTextEditor
-            content={comment}
-            onChange={setComment}
-            placeholder="Scrivi il commento alla sentenza..."
-          />
+          <RichTextEditor content={comment} onChange={setComment} placeholder="Scrivi il commento alla sentenza..." />
 
-          {/* Author */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Autore</label>
             <Select value={authorType} onValueChange={(v) => { setAuthorType(v); setExternalAuthorName(""); }}>
@@ -261,15 +248,10 @@ const SentenceManager = () => {
               </SelectContent>
             </Select>
             {authorType === "external" && (
-              <Input
-                placeholder="Nome autore esterno (opzionale)"
-                value={externalAuthorName}
-                onChange={(e) => setExternalAuthorName(e.target.value)}
-              />
+              <Input placeholder="Nome autore esterno (opzionale)" value={externalAuthorName} onChange={(e) => setExternalAuthorName(e.target.value)} />
             )}
           </div>
 
-          {/* Tags */}
           <div className="space-y-2">
             <div className="flex gap-2">
               <Input
@@ -279,9 +261,7 @@ const SentenceManager = () => {
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
                 className="flex-1"
               />
-              <Button variant="outline" size="sm" onClick={addTag} type="button">
-                Aggiungi
-              </Button>
+              <Button variant="outline" size="sm" onClick={addTag} type="button">Aggiungi</Button>
             </div>
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
@@ -297,15 +277,12 @@ const SentenceManager = () => {
             )}
           </div>
 
-          {/* Drag & Drop PDF */}
           <div
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             className={`relative rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
-              dragOver
-                ? "border-accent bg-accent/5"
-                : "border-border hover:border-muted-foreground/30"
+              dragOver ? "border-accent bg-accent/5" : "border-border hover:border-muted-foreground/30"
             }`}
           >
             {pdfFile ? (
@@ -348,7 +325,6 @@ const SentenceManager = () => {
         </div>
       )}
 
-      {/* List */}
       {loading ? (
         <div className="flex justify-center py-8">
           <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -382,26 +358,14 @@ const SentenceManager = () => {
                     {getAuthorLabel(s)}
                   </TableCell>
                   <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
-                    {new Date(s.created_at).toLocaleDateString("it-IT", {
-                      day: "2-digit", month: "short", year: "numeric",
-                    })}
+                    {new Date(s.created_at).toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" })}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => startEdit(s)}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => startEdit(s)} className="text-muted-foreground hover:text-foreground">
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteSentence(s.id)}
-                        className="text-muted-foreground hover:text-destructive"
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => deleteSentence(s.id)} className="text-muted-foreground hover:text-destructive">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

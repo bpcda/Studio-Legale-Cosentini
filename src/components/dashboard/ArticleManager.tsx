@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import {
+  databases, isConfigured, Query, ID, Permission, Role,
+  DB_ID, COLLECTIONS, normalizeDocs,
+} from "@/lib/appwrite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,6 +35,13 @@ interface TeamMember {
   full_name: string;
 }
 
+// Public-read + admin write permissions for new docs
+const publicReadAdminWrite = [
+  Permission.read(Role.any()),
+  Permission.update(Role.label("admin")),
+  Permission.delete(Role.label("admin")),
+];
+
 const ArticleManager = () => {
   const { toast } = useToast();
   const [articles, setArticles] = useState<Article[]>([]);
@@ -42,7 +52,6 @@ const ArticleManager = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  // Form
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
@@ -55,23 +64,31 @@ const ArticleManager = () => {
   const [isExternal, setIsExternal] = useState(false);
 
   const fetchArticles = useCallback(async () => {
-    if (!supabase) return;
+    if (!isConfigured) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("articles")
-      .select("*")
-      .order("date", { ascending: false });
-    if (data) setArticles(data);
+    try {
+      const res = await databases.listDocuments(DB_ID, COLLECTIONS.articles, [
+        Query.orderDesc("date"),
+        Query.limit(200),
+      ]);
+      setArticles(normalizeDocs<Article>(res.documents));
+    } catch (err) {
+      console.error("fetchArticles error:", err);
+    }
     setLoading(false);
   }, []);
 
   const fetchTeamMembers = useCallback(async () => {
-    if (!supabase) return;
-    const { data } = await supabase
-      .from("team_members")
-      .select("id, full_name")
-      .order("display_order");
-    if (data) setTeamMembers(data);
+    if (!isConfigured) return;
+    try {
+      const res = await databases.listDocuments(DB_ID, COLLECTIONS.team_members, [
+        Query.orderAsc("display_order"),
+        Query.limit(100),
+      ]);
+      setTeamMembers(normalizeDocs<TeamMember>(res.documents));
+    } catch (err) {
+      console.error("fetchTeamMembers error:", err);
+    }
   }, []);
 
   useEffect(() => {
@@ -88,18 +105,9 @@ const ArticleManager = () => {
   const removeTag = (tag: string) => setTags(tags.filter((x) => x !== tag));
 
   const resetForm = () => {
-    setTitle("");
-    setExcerpt("");
-    setContent("");
-    setExternalUrl("");
-    setArticleDate("");
-    setTags([]);
-    setTagInput("");
-    setAuthorType("external");
-    setExternalAuthorName("");
-    setIsExternal(false);
-    setShowForm(false);
-    setEditingId(null);
+    setTitle(""); setExcerpt(""); setContent(""); setExternalUrl(""); setArticleDate("");
+    setTags([]); setTagInput(""); setAuthorType("external"); setExternalAuthorName("");
+    setIsExternal(false); setShowForm(false); setEditingId(null);
   };
 
   const startEdit = (a: Article) => {
@@ -111,17 +119,13 @@ const ArticleManager = () => {
     setArticleDate(a.date || "");
     setTags(a.tags || []);
     setIsExternal(!!a.external_url);
-    if (a.author_team_member_id) {
-      setAuthorType(a.author_team_member_id);
-    } else {
-      setAuthorType("external");
-      setExternalAuthorName(a.author_name || "");
-    }
+    if (a.author_team_member_id) setAuthorType(a.author_team_member_id);
+    else { setAuthorType("external"); setExternalAuthorName(a.author_name || ""); }
     setShowForm(true);
   };
 
   const handleSubmit = async () => {
-    if (!supabase || !title.trim()) {
+    if (!isConfigured || !title.trim()) {
       toast({ title: "Compila almeno il titolo", variant: "destructive" });
       return;
     }
@@ -152,34 +156,30 @@ const ArticleManager = () => {
       author_team_member_id: isTeamMember ? authorType : null,
     };
 
-    if (editingId) {
-      const { error } = await supabase.from("articles").update(payload).eq("id", editingId);
-      if (error) {
-        toast({ title: "Errore aggiornamento", description: error.message, variant: "destructive" });
-      } else {
+    try {
+      if (editingId) {
+        await databases.updateDocument(DB_ID, COLLECTIONS.articles, editingId, payload);
         toast({ title: "Articolo aggiornato" });
-        resetForm();
-        fetchArticles();
-      }
-    } else {
-      const { error } = await supabase.from("articles").insert(payload);
-      if (error) {
-        toast({ title: "Errore salvataggio", description: error.message, variant: "destructive" });
       } else {
+        await databases.createDocument(DB_ID, COLLECTIONS.articles, ID.unique(), payload, publicReadAdminWrite);
         toast({ title: "Articolo pubblicato" });
-        resetForm();
-        fetchArticles();
       }
+      resetForm();
+      fetchArticles();
+    } catch (err: any) {
+      toast({ title: "Errore", description: err?.message ?? "Errore salvataggio", variant: "destructive" });
     }
     setSaving(false);
   };
 
   const deleteArticle = async (id: string) => {
-    if (!supabase) return;
-    const { error } = await supabase.from("articles").delete().eq("id", id);
-    if (!error) {
+    if (!isConfigured) return;
+    try {
+      await databases.deleteDocument(DB_ID, COLLECTIONS.articles, id);
       setArticles((prev) => prev.filter((a) => a.id !== id));
       toast({ title: "Articolo eliminato" });
+    } catch (err: any) {
+      toast({ title: "Errore", description: err?.message, variant: "destructive" });
     }
   };
 
@@ -206,53 +206,22 @@ const ArticleManager = () => {
         <div className="rounded-lg border border-border bg-card p-4 space-y-4">
           <Input placeholder="Titolo dell'articolo" value={title} onChange={(e) => setTitle(e.target.value)} />
 
-          {/* External toggle */}
           <div className="flex items-center gap-3">
             <label className="text-sm font-medium text-foreground">Tipo:</label>
-            <Button
-              variant={!isExternal ? "default" : "outline"}
-              size="sm"
-              onClick={() => setIsExternal(false)}
-            >
-              Interno
-            </Button>
-            <Button
-              variant={isExternal ? "default" : "outline"}
-              size="sm"
-              onClick={() => setIsExternal(true)}
-            >
-              Esterno
-            </Button>
+            <Button variant={!isExternal ? "default" : "outline"} size="sm" onClick={() => setIsExternal(false)}>Interno</Button>
+            <Button variant={isExternal ? "default" : "outline"} size="sm" onClick={() => setIsExternal(true)}>Esterno</Button>
           </div>
 
           {isExternal ? (
-            <Input
-              placeholder="URL articolo esterno (es. https://...)"
-              value={externalUrl}
-              onChange={(e) => setExternalUrl(e.target.value)}
-            />
+            <Input placeholder="URL articolo esterno (es. https://...)" value={externalUrl} onChange={(e) => setExternalUrl(e.target.value)} />
           ) : (
-            <RichTextEditor
-              content={content}
-              onChange={setContent}
-              placeholder="Contenuto completo dell'articolo..."
-            />
+            <RichTextEditor content={content} onChange={setContent} placeholder="Contenuto completo dell'articolo..." />
           )}
 
-          <Textarea
-            placeholder="Estratto / anteprima (opzionale, mostrato nella card)"
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
-            rows={2}
-          />
+          <Textarea placeholder="Estratto / anteprima (opzionale, mostrato nella card)" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} />
 
-          <Input
-            type="date"
-            value={articleDate}
-            onChange={(e) => setArticleDate(e.target.value)}
-          />
+          <Input type="date" value={articleDate} onChange={(e) => setArticleDate(e.target.value)} />
 
-          {/* Author */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Autore</label>
             <Select value={authorType} onValueChange={(v) => { setAuthorType(v); setExternalAuthorName(""); }}>
@@ -267,15 +236,10 @@ const ArticleManager = () => {
               </SelectContent>
             </Select>
             {authorType === "external" && (
-              <Input
-                placeholder="Nome autore esterno (opzionale)"
-                value={externalAuthorName}
-                onChange={(e) => setExternalAuthorName(e.target.value)}
-              />
+              <Input placeholder="Nome autore esterno (opzionale)" value={externalAuthorName} onChange={(e) => setExternalAuthorName(e.target.value)} />
             )}
           </div>
 
-          {/* Tags */}
           <div className="space-y-2">
             <div className="flex gap-2">
               <Input
@@ -308,7 +272,6 @@ const ArticleManager = () => {
         </div>
       )}
 
-      {/* List */}
       {loading ? (
         <div className="flex justify-center py-8">
           <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
