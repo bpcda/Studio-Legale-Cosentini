@@ -31,6 +31,7 @@ import logoCosentini from "@/assets/logo-cosentini.png";
 import SentenceManager from "@/components/dashboard/SentenceManager";
 import TeamManager from "@/components/dashboard/TeamManager";
 import ArticleManager from "@/components/dashboard/ArticleManager";
+import SEO from "@/components/SEO";
 
 interface ConsultationRequest {
   id: string;
@@ -151,6 +152,12 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Dashboard"
+        description="Area riservata di amministrazione dello Studio Legale Cosentini: gestione richieste di consulenza, articoli, sentenze e team."
+        path="/dashboard"
+        noindex
+      />
       <header className="border-b border-border bg-card sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
