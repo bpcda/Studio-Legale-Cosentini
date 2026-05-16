@@ -31,6 +31,7 @@ import logoCosentini from "@/assets/logo-cosentini.png";
 import SentenceManager from "@/components/dashboard/SentenceManager";
 import TeamManager from "@/components/dashboard/TeamManager";
 import ArticleManager from "@/components/dashboard/ArticleManager";
+import SEO from "@/components/SEO";
 
 interface ConsultationRequest {
   id: string;
