@@ -125,40 +125,40 @@ const Index = () => {
       />
 
       {/* Top bar with contacts — always visible */}
-      <div className="bg-primary text-primary-foreground text-xs py-2 border-b border-primary-foreground/10">
-        <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-5">
-            <a href="tel:+390817511775" className="flex items-center gap-1.5 hover:text-accent transition-colors">
-              <Phone size={12} />
-              <span>Napoli: 081 7511775</span>
+      <div className="bg-primary text-primary-foreground/80 text-[11px] tracking-wide py-2.5 border-b border-primary-foreground/10">
+        <div className="max-w-6xl mx-auto px-6 md:px-12 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-6">
+            <a href="tel:+390817511775" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
+              <span className="uppercase text-primary-foreground/50 tracking-[0.18em]">Napoli</span>
+              <span>081 7511775</span>
             </a>
-            <a href="tel:+390698357515" className="flex items-center gap-1.5 hover:text-accent transition-colors">
-              <Phone size={12} />
-              <span>Roma: 06 98357515</span>
+            <span className="text-primary-foreground/20">·</span>
+            <a href="tel:+390698357515" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
+              <span className="uppercase text-primary-foreground/50 tracking-[0.18em]">Roma</span>
+              <span>06 98357515</span>
             </a>
           </div>
-          <a href="mailto:avvocato@cosentini.it" className="flex items-center gap-1.5 hover:text-accent transition-colors">
-            <Mail size={12} />
-            <span>avvocato@cosentini.it</span>
+          <a href="mailto:avvocato@cosentini.it" className="hover:text-primary-foreground transition-colors">
+            avvocato@cosentini.it
           </a>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
+        <div className="max-w-6xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
           <a href="#" className="flex items-center gap-3" aria-label="Studio Legale Cosentini - Home">
             <Logo className="h-12 w-auto" />
           </a>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-10">
             {navItems.map((item) =>
               item.isRoute ? (
                 <Link
                   key={item.label}
                   to={item.href}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                  className="text-[13px] tracking-wide text-muted-foreground hover:text-foreground transition-colors duration-200"
                 >
                   {item.label}
                 </Link>
@@ -166,16 +166,17 @@ const Index = () => {
                 <a
                   key={item.label}
                   href={item.href}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                  className="text-[13px] tracking-wide text-muted-foreground hover:text-foreground transition-colors duration-200"
                 >
                   {item.label}
                 </a>
               )
             )}
-            <Link to="/consulenza">
-              <Button size="sm" className="active:scale-[0.97] transition-transform">
-                Consulenza
-              </Button>
+            <Link
+              to="/consulenza"
+              className="text-[13px] tracking-wide text-foreground border-b border-foreground/40 pb-1 hover:border-foreground transition-colors"
+            >
+              Consulenza
             </Link>
           </div>
 
@@ -185,19 +186,19 @@ const Index = () => {
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Apri menu di navigazione"
           >
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            {menuOpen ? <X size={20} strokeWidth={1.25} /> : <Menu size={20} strokeWidth={1.25} />}
           </button>
         </div>
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="md:hidden border-t border-border bg-background px-6 py-4 space-y-3">
+          <div className="md:hidden border-t border-border bg-background px-6 py-6 space-y-4">
             {navItems.map((item) =>
               item.isRoute ? (
                 <Link
                   key={item.label}
                   to={item.href}
-                  className="block text-sm text-muted-foreground py-2"
+                  className="block text-sm text-muted-foreground py-1.5"
                   onClick={() => setMenuOpen(false)}
                 >
                   {item.label}
@@ -206,15 +207,19 @@ const Index = () => {
                 <a
                   key={item.label}
                   href={item.href}
-                  className="block text-sm text-muted-foreground py-2"
+                  className="block text-sm text-muted-foreground py-1.5"
                   onClick={() => setMenuOpen(false)}
                 >
                   {item.label}
                 </a>
               )
             )}
-            <Link to="/consulenza">
-              <Button size="sm" className="w-full mt-2">Consulenza</Button>
+            <Link
+              to="/consulenza"
+              className="block text-sm text-foreground pt-3 border-t border-border"
+              onClick={() => setMenuOpen(false)}
+            >
+              Consulenza →
             </Link>
           </div>
         )}
