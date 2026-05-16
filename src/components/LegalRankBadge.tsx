@@ -1,5 +1,3 @@
-import { useEffect, useRef } from "react";
-
 interface LegalRankBadgeProps {
   fichaId?: string;
   style?: string;
@@ -11,19 +9,15 @@ const LegalRankBadge = ({
   style = "standard",
   className,
 }: LegalRankBadgeProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const script = document.createElement("script");
-    script.src = "https://legalrank.it/badge/embed.js";
-    script.async = true;
-    script.setAttribute("data-ficha-id", fichaId);
-    script.setAttribute("data-style", style);
-    containerRef.current.appendChild(script);
-  }, [fichaId, style]);
-
-  return <div ref={containerRef} className={className} aria-label="Legal Rank" />;
+  return (
+    <div
+      className={className}
+      aria-label="Legal Rank"
+      dangerouslySetInnerHTML={{
+        __html: `<script src="https://legalrank.it/badge/embed.js" data-ficha-id="${fichaId}" data-style="${style}"></script>`,
+      }}
+    />
+  );
 };
 
 export default LegalRankBadge;
