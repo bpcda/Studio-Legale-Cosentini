@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import logoCosentini from "@/assets/logo-cosentini.png";
 import { databases, isConfigured, Query, DB_ID, COLLECTIONS, normalizeDocs } from "@/lib/appwrite";
 import SEO from "@/components/SEO";
+import LegalRankBadge from "@/components/LegalRankBadge";
 
 const services = [
   {
@@ -543,8 +544,9 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="mt-16 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4 text-[12px] text-muted-foreground font-light">
+          <div className="mt-16 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-6 text-[12px] text-muted-foreground font-light">
             <p>© {new Date().getFullYear()} Studio Legale Cosentini · Tutti i diritti riservati.</p>
+            <LegalRankBadge className="opacity-80 hover:opacity-100 transition-opacity" />
             <div className="flex gap-8">
               <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
               <Link to="/cookie-policy" className="hover:text-foreground transition-colors">Cookie Policy</Link>
