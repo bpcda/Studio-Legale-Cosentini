@@ -15,12 +15,12 @@ const LegalRankBadge = ({
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const script = document.createElement("script");
-    script.src = "https://legalrank.it/badge/embed.js";
-    script.async = true;
-    script.setAttribute("data-ficha-id", fichaId);
-    script.setAttribute("data-style", style);
-    containerRef.current.appendChild(script);
+    const container = containerRef.current;
+    const html = `<script src="https://legalrank.it/badge/embed.js" data-ficha-id="${fichaId}" data-style="${style}"></script>`;
+    const range = document.createRange();
+    range.selectNode(container);
+    const fragment = range.createContextualFragment(html);
+    container.appendChild(fragment);
   }, [fichaId, style]);
 
   return <div ref={containerRef} className={className} aria-label="Legal Rank" />;
