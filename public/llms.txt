@@ -1,0 +1,18 @@
+# Studio Legale Cosentini
+
+> Studio legale italiano con oltre 25 anni di esperienza e sedi a Napoli e Roma. Assistenza in diritto civile, amministrativo, recupero crediti, trust, wealth management e D.Lgs. 231/ODV.
+
+Lo Studio Legale Cosentini assiste imprese, enti e privati con un approccio sartoriale orientato alla prevenzione del contenzioso e alla tutela del patrimonio.
+
+## Pagine
+
+- [Home](/): Presentazione dello studio, aree di attività e contatti.
+- [Lo Studio](/lo-studio): Storia, valori e team dei professionisti.
+- [Consulenza](/consulenza): Richiesta di consulenza online o in sede.
+- [Articoli](/articoli): Approfondimenti giuridici e contributi dei professionisti dello studio.
+- [Sentenze Commentate](/sentenze-commentate): Analisi e commenti a sentenze rilevanti.
+
+## Optional
+
+- [Privacy Policy](/privacy-policy): Informativa sul trattamento dei dati personali.
+- [Cookie Policy](/cookie-policy): Informativa sull'uso dei cookie.
