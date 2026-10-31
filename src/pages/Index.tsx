@@ -1,52 +1,24 @@
-import { Phone, Mail, MapPin, Scale, FileText, Shield, Landmark, Briefcase, Building2, ChevronDown, Menu, X, ExternalLink, Calendar, BookOpen } from "lucide-react";
+import { Phone, ArrowRight, Menu, X, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import ScrollReveal from "@/components/ScrollReveal";
 import { useState, useEffect } from "react";
 import logoCosentini from "@/assets/logo-cosentini.png";
 import { databases, isConfigured, Query, DB_ID, COLLECTIONS, normalizeDocs } from "@/lib/appwrite";
 import SEO from "@/components/SEO";
 import LegalRankBadge from "@/components/LegalRankBadge";
 
-const services = [
-  {
-    icon: Scale,
-    title: "Diritto Civile",
-    description:
-      "Assistenza in tutti i settori istituzionali del diritto civile. Diritti reali, usucapioni, servitù, comunione e condominio, azioni a difesa della proprietà e del possesso.",
-  },
-  {
-    icon: Landmark,
-    title: "Diritto Amministrativo",
-    description:
-      "Inadempimento contrattuale, vizio del bene o servizio fornito, ritardo nell'esecuzione delle prestazioni e tutela avanti ai tribunali amministrativi.",
-  },
-  {
-    icon: Shield,
-    title: "Responsabilità Sociale d'Impresa",
-    description:
-      "Modelli Organizzativi 231/01. Consulenza e assistenza nell'implementazione dei modelli di organizzazione, gestione e controllo.",
-  },
-  {
-    icon: FileText,
-    title: "Recupero Crediti",
-    description:
-      "Tutela contrattuale del credito, clausole contrattuali contro i rischi di mancato pagamento e diritto dell'esecuzione forzata.",
-  },
-  {
-    icon: Briefcase,
-    title: "Trust & Wealth Management",
-    description:
-      "Ideazione, creazione e gestione di Trust. Consulenza strategica nella gestione e valorizzazione di asset immobiliari e patrimoniali.",
-  },
-  {
-    icon: Building2,
-    title: "Custodia e Amministrazione Giudiziaria",
-    description:
-      "Servizi di custodia e amministrazione giudiziaria con competenza e affidabilità consolidate nel tempo.",
-  },
-];
+import services from "@/data/services.json";
+
+interface HomeArticle {
+  id: string;
+  title: string;
+  excerpt?: string;
+  content?: string;
+  external_url?: string;
+  tags?: string[];
+  date: string;
+}
 
 const navItems = [
   { label: "Lo Studio", href: "/lo-studio", isRoute: true },
@@ -56,7 +28,6 @@ const navItems = [
   { label: "Contatti", href: "#contatti" },
 ];
 
-// Placeholder articles — will be replaced by LinkedIn feed
 const Logo = ({ className = "h-10" }: { className?: string }) => (
   <img
     src={logoCosentini}
@@ -70,7 +41,7 @@ const Logo = ({ className = "h-10" }: { className?: string }) => (
 
 const Index = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [articles, setArticles] = useState<any[]>([]);
+  const [articles, setArticles] = useState<HomeArticle[]>([]);
   const [articlesLoading, setArticlesLoading] = useState(true);
 
   useEffect(() => {
@@ -82,9 +53,9 @@ const Index = () => {
       try {
         const res = await databases.listDocuments(DB_ID, COLLECTIONS.articles, [
           Query.orderDesc("date"),
-          Query.limit(6),
+          Query.limit(3),
         ]);
-        setArticles(normalizeDocs(res.documents));
+        setArticles(normalizeDocs<HomeArticle>(res.documents));
       } catch (err) {
         console.error("fetchArticles error:", err);
       }
@@ -105,6 +76,8 @@ const Index = () => {
       {
         "@type": "PostalAddress",
         addressLocality: "Napoli",
+        streetAddress: "Via Nuova del Campo 14",
+        postalCode: "80141",
         addressCountry: "IT",
       },
       {
@@ -119,23 +92,24 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="min-h-screen bg-background">
+      <a href="#contenuto" className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:bg-background focus:p-4">Vai al contenuto</a>
       <SEO
         path="/"
         jsonLd={jsonLd}
       />
 
       {/* Top bar with contacts — always visible */}
-      <div className="bg-primary text-primary-foreground/80 text-[11px] tracking-wide py-2.5 border-b border-primary-foreground/10">
+      <div className="bg-primary text-primary-foreground text-sm py-2.5">
         <div className="max-w-6xl mx-auto px-6 md:px-12 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <a href="tel:+390817511775" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
-              <span className="uppercase text-primary-foreground/50 tracking-[0.18em]">Napoli</span>
+              <span className="text-primary-foreground">Napoli</span>
               <span>081 7511775</span>
             </a>
             <span className="text-primary-foreground/20">·</span>
             <a href="tel:+390698357515" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
-              <span className="uppercase text-primary-foreground/50 tracking-[0.18em]">Roma</span>
+              <span className="text-primary-foreground">Roma</span>
               <span>06 98357515</span>
             </a>
           </div>
@@ -146,14 +120,14 @@ const Index = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
+      <nav aria-label="Navigazione principale" className="sticky top-0 z-50 bg-background">
         <div className="max-w-6xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
           <a href="#" className="flex items-center gap-3" aria-label="Studio Legale Cosentini - Home">
             <Logo className="h-12 w-auto" />
           </a>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-10">
+          <div className="hidden md:flex items-center gap-6">
             {navItems.map((item) =>
               item.isRoute ? (
                 <Link
@@ -183,9 +157,11 @@ const Index = () => {
 
           {/* Mobile menu toggle */}
           <button
-            className="md:hidden p-2 text-foreground active:scale-95 transition-transform"
+            className="md:hidden min-h-11 min-w-11 p-2 text-foreground active:scale-95 transition-transform"
             onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Apri menu di navigazione"
+            aria-label={menuOpen ? "Chiudi menu di navigazione" : "Apri menu di navigazione"}
+            aria-expanded={menuOpen}
+            aria-controls="menu-mobile"
           >
             {menuOpen ? <X size={20} strokeWidth={1.25} /> : <Menu size={20} strokeWidth={1.25} />}
           </button>
@@ -193,7 +169,7 @@ const Index = () => {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="md:hidden border-t border-border bg-background px-6 py-6 space-y-4">
+          <div id="menu-mobile" className="md:hidden bg-card px-6 py-6 space-y-4">
             {navItems.map((item) =>
               item.isRoute ? (
                 <Link
@@ -226,293 +202,150 @@ const Index = () => {
         )}
       </nav>
 
-      {/* Hero — editorial, institutional */}
-      <section className="relative min-h-[88vh] flex items-center bg-primary overflow-hidden" aria-label="Introduzione">
-        {/* very subtle architectural texture: vertical hairlines */}
-        <div
-          className="absolute inset-0 opacity-[0.07] pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, hsl(var(--primary-foreground)) 1px, transparent 1px)",
-            backgroundSize: "120px 100%",
-          }}
-          aria-hidden
-        />
-        <div className="absolute inset-y-0 left-0 w-px bg-primary-foreground/10" aria-hidden />
-        <div className="absolute inset-y-0 right-0 w-px bg-primary-foreground/10" aria-hidden />
-
-        <div className="relative z-10 max-w-6xl mx-auto px-6 md:px-12 py-28 md:py-40 w-full">
-          <div className="grid md:grid-cols-12 gap-8 items-end">
-            <div className="md:col-span-9">
-              <p
-                className="eyebrow text-primary-foreground/60 mb-10 opacity-0 animate-fade-in-up flex items-center gap-3"
-                style={{ animationDelay: "80ms" }}
-              >
-                <span className="inline-block w-8 h-px bg-primary-foreground/40" />
-                Napoli · Roma · dal 1998
-              </p>
-              <h1
-                className="font-serif font-light text-primary-foreground leading-[1.02] mb-10 opacity-0 animate-fade-in-up text-5xl md:text-7xl lg:text-[5.5rem] tracking-tight"
-                style={{ animationDelay: "200ms", textWrap: "balance" as any }}
-              >
-                Studio Legale
-                <br />
-                <span className="italic font-normal text-primary-foreground/90">Cosentini</span>
-              </h1>
-              <p
-                className="font-serif italic text-primary-foreground/70 text-lg md:text-xl mb-12 opacity-0 animate-fade-in-up"
-                style={{ animationDelay: "320ms" }}
-              >
-                « Rem tene, verba sequentur »
-              </p>
-              <p
-                className="text-primary-foreground/65 text-base md:text-[17px] max-w-xl mb-14 leading-[1.75] font-light opacity-0 animate-fade-in-up"
-                style={{ animationDelay: "440ms" }}
-              >
-                Una boutique legale italiana dedicata alla consulenza
-                strategica per imprese, patrimoni e persone. Oltre venticinque
-                anni di esperienza, due sedi, un'unica idea di professione.
-              </p>
-              <div
-                className="flex flex-wrap items-center gap-8 opacity-0 animate-fade-in-up"
-                style={{ animationDelay: "560ms" }}
-              >
-                <Link
-                  to="/consulenza"
-                  className="group inline-flex items-center gap-3 text-sm tracking-wide text-primary-foreground border-b border-primary-foreground/40 pb-1.5 hover:border-primary-foreground transition-colors"
-                >
-                  Richiedi un appuntamento
-                  <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
-                </Link>
-                <a
-                  href="#servizi"
-                  className="text-sm tracking-wide text-primary-foreground/60 hover:text-primary-foreground transition-colors"
-                >
-                  Aree di competenza
-                </a>
+      <main id="contenuto">
+      <section className="bg-primary text-primary-foreground" aria-label="Introduzione">
+        <div className="max-w-6xl mx-auto px-6 md:px-12 py-12 md:py-16 grid lg:grid-cols-[1.6fr_1fr] gap-10 lg:gap-16 items-center">
+          <div>
+            <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl leading-[1.02] tracking-tight">
+              Studio Legale<br />Cosentini
+            </h1>
+            <p className="mt-6 text-lg leading-relaxed max-w-xl">
+              Assistenza legale per imprese, patrimoni e persone.
+              A Napoli, Roma e da remoto.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-4 md:gap-6">
+              <Button asChild size="lg" variant="secondary" className="px-5">
+                <Link to="/consulenza">Richiedi un appuntamento <ArrowRight size={16} aria-hidden="true" /></Link>
+              </Button>
+              <a href="#servizi" className="inline-flex items-center min-h-11 underline underline-offset-4">Aree di competenza</a>
+            </div>
+          </div>
+          <div className="bg-primary-foreground text-primary p-6 md:p-8">
+            <p className="font-serif text-3xl mb-4">Al suo fianco, dal 1998.</p>
+            <p className="leading-relaxed">Oltre venticinque anni di esperienza. Due sedi, un'unica idea di professione.</p>
+            <div className="grid grid-cols-2 gap-6 mt-8">
+              <div>
+                <h2 className="font-serif text-2xl mb-2">Napoli</h2>
+                <a href="tel:+390817511775" className="inline-flex items-center min-h-11 text-sm underline underline-offset-4">081 7511775</a>
+              </div>
+              <div>
+                <h2 className="font-serif text-2xl mb-2">Roma</h2>
+                <a href="tel:+390698357515" className="inline-flex items-center min-h-11 text-sm underline underline-offset-4">06 98357515</a>
               </div>
             </div>
           </div>
         </div>
-
-        <a
-          href="#servizi"
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-primary-foreground/30 hover:text-primary-foreground/60 transition-colors"
-          aria-label="Scorri verso il basso"
-        >
-          <ChevronDown size={20} strokeWidth={1.25} />
-        </a>
       </section>
 
-      {/* Services — editorial grid with hairline dividers */}
-      <section id="servizi" className="py-28 md:py-40 bg-background" aria-label="Aree di competenza">
+      <section id="servizi" className="py-16 md:py-24 scroll-mt-20" aria-labelledby="servizi-title">
         <div className="max-w-6xl mx-auto px-6 md:px-12">
-          <ScrollReveal>
-            <div className="grid md:grid-cols-12 gap-8 mb-20 md:mb-28 items-end">
-              <div className="md:col-span-4">
-                <p className="eyebrow mb-6 flex items-center gap-3">
-                  <span className="rule-accent" />
-                  01 — Practice
-                </p>
-                <h2 className="text-4xl md:text-5xl font-serif font-light text-foreground leading-[1.05] tracking-tight" style={{ textWrap: "balance" as any }}>
-                  Aree di
-                  <br />
-                  <span className="italic">competenza</span>
-                </h2>
-              </div>
-              <div className="md:col-span-7 md:col-start-6">
-                <p className="text-muted-foreground text-base md:text-[17px] leading-[1.8] font-light max-w-lg">
-                  Un'assistenza selettiva, costruita su una conoscenza
-                  approfondita di ciascuna materia. Lavoriamo accanto a
-                  imprenditori, istituzioni e famiglie con lo stesso rigore
-                  con cui un artigiano si dedica al proprio mestiere.
-                </p>
-              </div>
-            </div>
-          </ScrollReveal>
-
-          <div className="hairline mb-px" />
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 border-l border-border">
-            {services.map((service, i) => (
-              <ScrollReveal key={service.title} delay={i * 60}>
-                <article className="group h-full p-10 md:p-12 border-r border-b border-border bg-background transition-colors duration-500 hover:bg-card">
-                  <div className="flex items-baseline gap-4 mb-8">
-                    <span className="font-serif italic text-accent/70 text-sm">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="h-px flex-1 bg-border" />
-                  </div>
-                  <h3 className="font-serif text-2xl md:text-[28px] font-light text-foreground mb-5 leading-[1.15] tracking-tight">
-                    {service.title}
-                  </h3>
-                  <p className="text-muted-foreground text-[14px] leading-[1.75] font-light" style={{ overflowWrap: "break-word" }}>
-                    {service.description}
-                  </p>
-                </article>
-              </ScrollReveal>
+          <div className="grid md:grid-cols-2 gap-6 md:gap-16 items-end mb-10 md:mb-14">
+            <h2 id="servizi-title" className="font-serif text-4xl md:text-5xl leading-tight">Aree di competenza</h2>
+            <p className="leading-relaxed">Dalla tutela di un diritto alla gestione del patrimonio: scopra l'assistenza più vicina alla sua esigenza.</p>
+          </div>
+          <div className="space-y-10 md:space-y-12">
+            {services.map((service) => (
+              <article key={service.slug} className="grid md:grid-cols-2 gap-4 md:gap-16">
+                <div>
+                <h3 className="font-serif text-3xl leading-tight">
+                  <Link to={`/servizi/${service.slug}`} className="hover:underline underline-offset-4">{service.title}</Link>
+                </h3>
+                <p className="mt-3 font-medium">{service.need}</p>
+                </div>
+                <div>
+                <p className="text-muted-foreground leading-relaxed">{service.description}</p>
+                <Link to={`/servizi/${service.slug}`} className="inline-flex items-center gap-2 min-h-11 mt-4 text-sm underline underline-offset-4" aria-label={`Scopri il servizio: ${service.title}`}>
+                  Scopri il servizio <ArrowRight size={16} aria-hidden="true" />
+                </Link>
+                </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Articles / LinkedIn — editorial */}
-      <section id="articoli" className="py-28 md:py-40 bg-card" aria-label="Articoli e pubblicazioni">
-        <div className="max-w-6xl mx-auto px-6 md:px-12">
-          <ScrollReveal>
-            <div className="grid md:grid-cols-12 gap-8 mb-20 items-end">
-              <div className="md:col-span-7">
-                <p className="eyebrow mb-6 flex items-center gap-3">
-                  <span className="rule-accent" />
-                  02 — Pubblicazioni
-                </p>
-                <h2 className="text-4xl md:text-5xl font-serif font-light text-foreground leading-[1.05] tracking-tight" style={{ textWrap: "balance" as any }}>
-                  Articoli e <span className="italic">approfondimenti</span>
-                </h2>
-              </div>
-              <div className="md:col-span-4 md:col-start-9">
-                <p className="text-muted-foreground text-[15px] leading-[1.8] font-light">
-                  Aggiornamenti e analisi dal mondo del diritto a cura
-                  dell'Avv. Sergio Cosentini.
-                </p>
-              </div>
-            </div>
-          </ScrollReveal>
+      <section className="bg-primary text-primary-foreground py-14 md:py-20" aria-labelledby="studio-title">
+        <div className="max-w-6xl mx-auto px-6 md:px-12 grid md:grid-cols-2 gap-8 md:gap-16 items-center">
+          <h2 id="studio-title" className="font-serif text-4xl md:text-5xl leading-tight">Conosca lo Studio</h2>
+          <div>
+            <p className="text-lg leading-relaxed">Sedi operative a Napoli e Roma, assistenza su tutto il territorio nazionale. Ogni richiesta parte dall'ascolto delle sue esigenze.</p>
+            <Button asChild variant="secondary" size="lg" className="mt-6">
+              <Link to="/lo-studio">Lo Studio e i professionisti <ArrowRight size={16} aria-hidden="true" /></Link>
+            </Button>
+          </div>
+        </div>
+      </section>
 
+      <section id="articoli" className="py-16 md:py-24" aria-labelledby="articoli-title">
+        <div className="max-w-6xl mx-auto px-6 md:px-12">
+          <div className="grid md:grid-cols-2 gap-6 md:gap-16 items-end mb-10">
+            <h2 id="articoli-title" className="font-serif text-4xl md:text-5xl leading-tight">Dal nostro osservatorio</h2>
+            <p className="leading-relaxed">Articoli e approfondimenti dal mondo del diritto a cura dell'Avv. Sergio Cosentini.</p>
+          </div>
           {articlesLoading ? (
-            <div className="grid md:grid-cols-3 gap-px bg-border">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="p-8 bg-card space-y-4">
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                </div>
-              ))}
+            <div className="space-y-6" role="status" aria-label="Caricamento articoli">
+              {[0, 1, 2].map((i) => <Skeleton key={i} className="h-24 w-full" />)}
             </div>
           ) : articles.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground border-y border-border">
-              <FileText className="h-8 w-8 mx-auto mb-3 opacity-40" strokeWidth={1.25} />
-              <p className="font-light">Nessun articolo pubblicato al momento.</p>
-            </div>
+            <p className="bg-card p-8 text-muted-foreground">Nessun articolo disponibile al momento.</p>
           ) : (
-            <div className="grid md:grid-cols-3 border-t border-l border-border">
-              {articles.map((article, i) => {
-                const isExt = !!article.external_url;
-                const excerpt = (article.excerpt || article.content || "").replace(/<[^>]*>/g, "");
+            <div className="space-y-6">
+              {articles.map((article) => {
+                const excerpt = (article.excerpt || article.content || "").replace(/<[^>]*>/g, " ");
                 const words = excerpt.split(/\s+/).filter(Boolean);
-                const truncated = words.length > 28 ? words.slice(0, 28).join(" ") + "…" : excerpt;
-
-                const Wrapper: any = isExt ? "a" : Link;
-                const wrapperProps = isExt
-                  ? { href: article.external_url, target: "_blank", rel: "noopener noreferrer" }
-                  : { to: `/articoli/${article.id}` };
-
+                const preview = words.length > 28 ? words.slice(0, 28).join(" ") + "…" : words.join(" ");
+                const content = (
+                  <>
+                    <h3 className="font-serif text-2xl md:text-3xl leading-tight line-clamp-3 group-hover:underline underline-offset-4">{article.title}</h3>
+                    <p className="text-muted-foreground mt-3 leading-relaxed">{preview}</p>
+                    <span className="inline-flex items-center gap-2 mt-4 text-sm">Leggi l'approfondimento {article.external_url ? <ExternalLink size={16} aria-hidden="true" /> : <ArrowRight size={16} aria-hidden="true" />}</span>
+                  </>
+                );
                 return (
-                  <ScrollReveal key={article.id} delay={i * 80}>
-                    <Wrapper
-                      {...wrapperProps}
-                      className="group h-full flex flex-col p-8 md:p-10 border-r border-b border-border bg-card hover:bg-background transition-colors duration-500"
-                    >
-                      <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-6">
-                        <time dateTime={article.date}>
-                          {new Date(article.date).toLocaleDateString("it-IT", {
-                            day: "numeric", month: "long", year: "numeric",
-                          })}
-                        </time>
-                        {isExt && (
-                          <span className="ml-auto text-accent/70">Esterno</span>
-                        )}
-                      </div>
-                      <h3 className="font-serif text-xl md:text-2xl font-light text-foreground mb-4 leading-[1.2] tracking-tight">
-                        {article.title}
-                      </h3>
-                      <p className="text-muted-foreground text-[14px] leading-[1.75] font-light flex-1" style={{ overflowWrap: "break-word" }}>
-                        {truncated}
-                      </p>
-                      <span className="mt-8 inline-flex items-center gap-2 text-[12px] uppercase tracking-[0.18em] text-foreground border-b border-foreground/30 pb-1 self-start group-hover:border-foreground transition-colors">
-                        Leggi
-                        {isExt ? <ExternalLink size={11} strokeWidth={1.5} /> : <span>→</span>}
-                      </span>
-                    </Wrapper>
-                  </ScrollReveal>
+                  <article key={article.id} className="bg-card p-6 md:p-8 grid md:grid-cols-[10rem_1fr] gap-4 md:gap-8">
+                    <div className="text-sm text-muted-foreground leading-relaxed">
+                      <time dateTime={article.date}>{new Date(article.date).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" })}</time>
+                      {article.tags?.length > 0 && <p className="mt-2">{article.tags.join(" · ")}</p>}
+                    </div>
+                    {article.external_url ? (
+                      <a href={article.external_url} target="_blank" rel="noopener noreferrer" className="group block min-w-0" aria-label={`${article.title} (si apre in una nuova scheda)`}>{content}</a>
+                    ) : (
+                      <Link to={`/articoli/${article.id}`} className="group block min-w-0">{content}</Link>
+                    )}
+                  </article>
                 );
               })}
             </div>
           )}
-
-          <ScrollReveal delay={200}>
-            <div className="text-center mt-16">
-              <Link
-                to="/articoli"
-                className="inline-flex items-center gap-3 text-sm tracking-wide text-foreground border-b border-foreground/40 pb-1.5 hover:border-foreground transition-colors"
-              >
-                Tutti gli articoli
-                <span>→</span>
-              </Link>
-            </div>
-          </ScrollReveal>
+          <Link to="/articoli" className="inline-flex items-center gap-2 min-h-11 mt-8 underline underline-offset-4">Tutti gli articoli <ArrowRight size={16} aria-hidden="true" /></Link>
         </div>
       </section>
 
-      {/* CTA — institutional, no gradients */}
-      <section id="contatti" className="py-28 md:py-40 bg-background" aria-label="Contattaci">
-        <div className="max-w-6xl mx-auto px-6 md:px-12">
-          <ScrollReveal>
-            <div className="relative bg-primary px-10 py-20 md:px-20 md:py-28 overflow-hidden">
-              <div
-                className="absolute inset-0 opacity-[0.05] pointer-events-none"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(to right, hsl(var(--primary-foreground)) 1px, transparent 1px)",
-                  backgroundSize: "100px 100%",
-                }}
-                aria-hidden
-              />
-              <div className="relative z-10 grid md:grid-cols-12 gap-10 items-end">
-                <div className="md:col-span-7">
-                  <p className="eyebrow text-primary-foreground/50 mb-8 flex items-center gap-3">
-                    <span className="inline-block w-8 h-px bg-primary-foreground/40" />
-                    03 — Contatti
-                  </p>
-                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-light text-primary-foreground leading-[1.05] tracking-tight" style={{ textWrap: "balance" as any }}>
-                    Una <span className="italic">conversazione</span>
-                    <br />
-                    può cambiare un esito.
-                  </h2>
-                </div>
-                <div className="md:col-span-4 md:col-start-9">
-                  <p className="text-primary-foreground/65 mb-10 leading-[1.8] font-light text-[15px]">
-                    Ogni mandato comincia con un ascolto attento. Vi
-                    invitiamo a fissare un primo incontro, in studio o
-                    da remoto.
-                  </p>
-                  <div className="flex flex-col gap-5">
-                    <Link
-                      to="/consulenza"
-                      className="group inline-flex items-center justify-between gap-3 text-sm tracking-wide text-primary-foreground border-b border-primary-foreground/40 pb-2 hover:border-primary-foreground transition-colors"
-                    >
-                      Richiedi consulenza
-                      <span className="transition-transform group-hover:translate-x-1">→</span>
-                    </Link>
-                    <a
-                      href="tel:+390817511775"
-                      className="inline-flex items-center justify-between gap-3 text-sm tracking-wide text-primary-foreground/70 hover:text-primary-foreground transition-colors"
-                    >
-                      <span className="flex items-center gap-2"><Phone size={13} strokeWidth={1.5} /> Napoli — 081 7511775</span>
-                    </a>
-                    <a
-                      href="tel:+390698357515"
-                      className="inline-flex items-center justify-between gap-3 text-sm tracking-wide text-primary-foreground/70 hover:text-primary-foreground transition-colors"
-                    >
-                      <span className="flex items-center gap-2"><Phone size={13} strokeWidth={1.5} /> Roma — 06 98357515</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
+      <section id="contatti" className="bg-primary text-primary-foreground py-14 md:py-20 scroll-mt-20" aria-labelledby="contatti-title">
+        <div className="max-w-6xl mx-auto px-6 md:px-12 grid md:grid-cols-2 gap-10 md:gap-16">
+          <div>
+            <h2 id="contatti-title" className="font-serif text-4xl md:text-5xl leading-tight">Parliamo della sua esigenza</h2>
+            <p className="mt-6 leading-relaxed max-w-lg">Richieda un primo incontro in studio o da remoto. Concorderemo insieme data, orario e modalità della consulenza.</p>
+            <Button asChild variant="secondary" size="lg" className="mt-8 px-5">
+              <Link to="/consulenza">Richiedi un appuntamento <ArrowRight size={16} aria-hidden="true" /></Link>
+            </Button>
+          </div>
+          <div className="space-y-6">
+            <div>
+              <h3 className="font-serif text-2xl">Napoli</h3>
+              <address className="not-italic mt-2 leading-relaxed">Via Nuova del Campo 14<br />80141 Napoli</address>
+              <a href="https://www.google.com/maps/search/?api=1&query=Via+Nuova+del+Campo+14+80141+Napoli" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 min-h-11 underline underline-offset-4">Indicazioni per Napoli <ExternalLink size={14} aria-hidden="true" /><span className="sr-only"> (nuova scheda)</span></a>
+              <a href="tel:+390817511775" className="flex items-center gap-2 min-h-11"><Phone size={16} aria-hidden="true" />081 7511775</a>
             </div>
-          </ScrollReveal>
+            <div>
+              <h3 className="font-serif text-2xl">Roma</h3>
+              <p className="mt-2">Contatti lo Studio per concordare l'incontro.</p>
+              <a href="tel:+390698357515" className="flex items-center gap-2 min-h-11"><Phone size={16} aria-hidden="true" />06 98357515</a>
+            </div>
+          </div>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <footer className="border-t border-border py-16 md:py-20" role="contentinfo">

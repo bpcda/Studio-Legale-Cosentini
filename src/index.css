@@ -102,6 +102,26 @@
     font-feature-settings: "liga", "dlig", "kern";
     letter-spacing: -0.01em;
   }
+
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+  }
+
+  ::selection {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-scroll-reveal], .animate-fade-in-up {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
 }
 
 @layer utilities {

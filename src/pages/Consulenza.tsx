@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { ExecutionMethod } from "appwrite";
 import SEO from "@/components/SEO";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Send, Video, MapPin, Phone, Mail } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Send, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import ScrollReveal from "@/components/ScrollReveal";
 import logoCosentini from "@/assets/logo-cosentini.png";
 import {
   account,
@@ -25,7 +25,7 @@ import {
 } from "@/lib/appwrite";
 
 const serviceTypes = [
-  { value: "generico", label: "Consulenza Generica" },
+  { value: "generico", label: "Non so quale area scegliere" },
   { value: "civile", label: "Diritto Civile" },
   { value: "amministrativo", label: "Diritto Amministrativo" },
   { value: "patrimoniale", label: "Patrimoniale & Wealth Management" },
@@ -35,28 +35,25 @@ const serviceTypes = [
   { value: "custodia", label: "Custodia e Amministrazione Giudiziaria" },
 ];
 
-const MESSAGE_TEMPLATE = `Gentile Studio Legale Cosentini,
-
-desidero richiedere una consulenza in merito a:
-
-[Descriva brevemente la sua esigenza]
-
-Resto a disposizione per concordare data e orario.
-
-Cordiali saluti`;
-
 const Consulenza = () => {
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submissionError, setSubmissionError] = useState("");
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [serviceType, setServiceType] = useState("");
-  const [message, setMessage] = useState(MESSAGE_TEMPLATE);
+  const [serviceType, setServiceType] = useState(() => {
+    const requested = searchParams.get("servizio");
+    return serviceTypes.some((service) => service.value === requested) ? requested : "generico";
+  });
+  const [message, setMessage] = useState("");
   const [consultationMode, setConsultationMode] = useState<string>("webcall");
 
-  const isValid = fullName.trim() && email.trim() && phone.trim() && serviceType && message.trim();
+  const isValid = fullName.trim() && email.trim() && phone.trim() && message.trim()
+    && serviceTypes.some((service) => service.value === serviceType);
 
   /**
    * Make sure we have *some* Appwrite session before writing the doc / invoking the function.
@@ -73,9 +70,19 @@ const Consulenza = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValid) return;
+    if (isSubmitting) return;
+    setSubmitted(false);
+    if (!isValid) {
+      setSubmissionError("Compili tutti i campi obbligatori e descriva brevemente la sua esigenza.");
+      return;
+    }
+    if (!isConfigured) {
+      setSubmissionError("Il modulo non è disponibile al momento. Può contattare lo Studio telefonicamente o via email ai recapiti indicati.");
+      return;
+    }
 
     setIsSubmitting(true);
+    setSubmissionError("");
 
     const payload = {
       full_name: fullName.trim(),
@@ -88,33 +95,31 @@ const Consulenza = () => {
     };
 
     try {
-      if (isConfigured) {
-        await ensureSession();
+      await ensureSession();
 
-        // Store the request. Per-document permissions: only admins can read/update/delete.
-        await databases.createDocument(
-          DB_ID,
-          COLLECTIONS.consultation_requests,
-          ID.unique(),
-          payload,
-          [
-            Permission.read(Role.label("admin")),
-            Permission.update(Role.label("admin")),
-            Permission.delete(Role.label("admin")),
-          ]
-        );
+      // Store the request. Per-document permissions: only admins can read/update/delete.
+      await databases.createDocument(
+        DB_ID,
+        COLLECTIONS.consultation_requests,
+        ID.unique(),
+        payload,
+        [
+          Permission.read(Role.label("admin")),
+          Permission.update(Role.label("admin")),
+          Permission.delete(Role.label("admin")),
+        ]
+      );
 
-        // Fire-and-forget email notification
-        functions
-          .createExecution(
-            FUNCTIONS.send_consultation_email,
-            JSON.stringify(payload),
-            true, // async
-            "/",
-            "POST" as any
-          )
-          .catch((err) => console.error("Email function error:", err));
-      }
+      // Fire-and-forget email notification
+      functions
+        .createExecution(
+          FUNCTIONS.send_consultation_email,
+          JSON.stringify(payload),
+          true, // async
+          "/",
+          ExecutionMethod.POST
+        )
+        .catch((err) => console.error("Email function error:", err));
 
       toast({
         title: "Richiesta inviata",
@@ -124,11 +129,13 @@ const Consulenza = () => {
       setFullName("");
       setEmail("");
       setPhone("");
-      setServiceType("");
-      setMessage(MESSAGE_TEMPLATE);
+      setServiceType("generico");
+      setMessage("");
       setConsultationMode("webcall");
+      setSubmitted(true);
     } catch (err) {
       console.error("Submit error:", err);
+      setSubmissionError("La richiesta non è stata inviata. I dati inseriti sono ancora nel modulo: riprovi o contatti lo Studio telefonicamente.");
       toast({
         title: "Errore",
         description: "Si è verificato un errore. Riprovi o ci contatti telefonicamente.",
@@ -147,7 +154,7 @@ const Consulenza = () => {
         path="/consulenza"
       />
       {/* Header */}
-      <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+      <nav aria-label="Navigazione della consulenza" className="bg-background">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <img src={logoCosentini} alt="Studio Legale Cosentini" className="h-10" width={80} height={80} />
@@ -155,12 +162,12 @@ const Consulenza = () => {
               Studio Legale Cosentini
             </span>
           </Link>
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2 active:scale-[0.97] transition-transform">
+          <Button asChild variant="ghost" size="sm" className="gap-2">
+            <Link to="/">
               <ArrowLeft size={16} />
-              <span className="hidden sm:inline">Torna al sito</span>
-            </Button>
-          </Link>
+              Torna al sito
+            </Link>
+          </Button>
         </div>
       </nav>
 
@@ -168,50 +175,23 @@ const Consulenza = () => {
         <div className="grid md:grid-cols-5 gap-12 md:gap-16">
           {/* Left — Info */}
           <div className="md:col-span-2">
-            <ScrollReveal>
+            <div>
               <h1
                 className="font-serif text-3xl md:text-4xl font-semibold text-foreground leading-[1.1] mb-4"
-                style={{ textWrap: "balance" } as any}
+                style={{ textWrap: "balance" }}
               >
-                Richiedi una Consulenza
+                Richiedi una consulenza
               </h1>
               <p className="text-muted-foreground leading-relaxed mb-8">
                 Compili il modulo con le sue informazioni e la natura della sua richiesta.
                 Lo Studio la contatterà per concordare data, orario e modalità della consulenza.
               </p>
-            </ScrollReveal>
+            </div>
 
-            <ScrollReveal delay={120}>
+            <div>
               <div className="space-y-6">
-                <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-                  Modalità disponibili
-                </h2>
-
-                <div className="space-y-4">
-                  <div className="flex items-start gap-4 p-4 rounded-lg bg-card border border-border">
-                    <div className="p-2 rounded-md bg-accent/10 text-accent mt-0.5">
-                      <Video size={20} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground text-sm">Videochiamata</p>
-                      <p className="text-muted-foreground text-sm leading-relaxed mt-1">
-                        Consulenza da remoto via piattaforma da concordare con lo Studio.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4 p-4 rounded-lg bg-card border border-border">
-                    <div className="p-2 rounded-md bg-accent/10 text-accent mt-0.5">
-                      <MapPin size={20} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground text-sm">Di persona</p>
-                      <p className="text-muted-foreground text-sm leading-relaxed mt-1">
-                        Presso la sede di Napoli o Roma, in base alle disponibilità dello Studio.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <h2 className="font-serif text-2xl">Preferisce parlarne?</h2>
+                <p className="text-muted-foreground leading-relaxed">Può contattare direttamente una delle sedi o scriverci via email.</p>
 
                 <div className="pt-4 border-t border-border space-y-3">
                   <a href="tel:+390817511775" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -228,17 +208,19 @@ const Consulenza = () => {
                   </a>
                 </div>
               </div>
-            </ScrollReveal>
+            </div>
           </div>
 
           {/* Right — Form */}
           <div className="md:col-span-3">
-            <ScrollReveal delay={80}>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" aria-label="Richiesta di consulenza" aria-busy={isSubmitting}>
+                <p className="text-sm text-muted-foreground">I campi contrassegnati con * sono obbligatori.</p>
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Nome completo *</Label>
                   <Input
                     id="fullName"
+                    name="name"
+                    autoComplete="name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Mario Rossi"
@@ -252,6 +234,8 @@ const Consulenza = () => {
                     <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
+                      name="email"
+                      autoComplete="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -264,6 +248,8 @@ const Consulenza = () => {
                     <Label htmlFor="phone">Telefono *</Label>
                     <Input
                       id="phone"
+                      name="tel"
+                      autoComplete="tel"
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
@@ -275,9 +261,9 @@ const Consulenza = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Tipo di servizio *</Label>
+                  <Label htmlFor="serviceType">Area di assistenza *</Label>
                   <Select value={serviceType} onValueChange={setServiceType} required>
-                    <SelectTrigger>
+                    <SelectTrigger id="serviceType">
                       <SelectValue placeholder="Seleziona il tipo di consulenza" />
                     </SelectTrigger>
                     <SelectContent>
@@ -291,21 +277,25 @@ const Consulenza = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="message">Messaggio *</Label>
+                  <Label htmlFor="message">Di cosa ha bisogno? *</Label>
                   <Textarea
                     id="message"
+                    name="message"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    rows={8}
+                    rows={5}
+                    placeholder="Descriva brevemente la sua esigenza. Non serve una lettera formale."
+                    aria-describedby="message-help"
                     required
                     maxLength={2000}
                     className="resize-y"
                   />
+                  <p id="message-help" className="text-sm text-muted-foreground">Bastano poche righe. Le modalità per condividere documenti e dettagli riservati saranno concordate con lo Studio.</p>
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Modalità di consulenza preferita *</Label>
-                  <RadioGroup value={consultationMode} onValueChange={setConsultationMode} className="grid sm:grid-cols-2 gap-3">
+                  <Label id="mode-label">Modalità di consulenza preferita *</Label>
+                  <RadioGroup aria-labelledby="mode-label" value={consultationMode} onValueChange={setConsultationMode} className="grid sm:grid-cols-2 gap-3">
                     <label
                       htmlFor="mode-webcall"
                       className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
@@ -337,15 +327,18 @@ const Consulenza = () => {
                   </RadioGroup>
                 </div>
 
-                <p className="text-xs text-muted-foreground">
-                  La modalità, la data e l'orario della consulenza saranno concordati direttamente con lo Studio.
+                <p className="text-sm text-muted-foreground">
+                  Dopo l'invio lo Studio la ricontatterà per concordare data, orario e modalità dell'incontro. I dati saranno trattati per gestire la richiesta, come descritto nella <Link to="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>.
                 </p>
+
+                {submissionError && <p role="alert" className="text-destructive leading-relaxed">{submissionError}</p>}
+                {submitted && <div role="status" className="bg-card p-5 leading-relaxed"><p className="font-medium">Richiesta ricevuta.</p><p>Lo Studio la ricontatterà per concordare l'incontro.</p></div>}
 
                 <Button
                   type="submit"
                   size="lg"
                   className="w-full gap-2 active:scale-[0.97] transition-transform"
-                  disabled={!isValid || isSubmitting}
+                  disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     "Invio in corso…"
@@ -357,7 +350,6 @@ const Consulenza = () => {
                   )}
                 </Button>
               </form>
-            </ScrollReveal>
           </div>
         </div>
       </main>

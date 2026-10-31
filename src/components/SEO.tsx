@@ -40,6 +40,8 @@ const SEO = ({
       {
         "@type": "PostalAddress",
         addressLocality: "Napoli",
+        streetAddress: "Via Nuova del Campo 14",
+        postalCode: "80141",
         addressCountry: "IT",
       },
       {
