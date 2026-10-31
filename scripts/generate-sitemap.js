@@ -1,5 +1,7 @@
 import { Client, Databases, Query } from "node-appwrite";
-import { writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
+
+const services = JSON.parse(readFileSync(new URL("../src/data/services.json", import.meta.url), "utf-8"));
 
 const BASE_URL = "https://www.cosentini.it";
 
@@ -7,6 +9,7 @@ const STATIC_ROUTES = [
   { path: "/", priority: "1.0", changefreq: "weekly" },
   { path: "/lo-studio", priority: "0.8", changefreq: "monthly" },
   { path: "/consulenza", priority: "0.8", changefreq: "monthly" },
+  ...services.map((service) => ({ path: `/servizi/${service.slug}`, priority: "0.8", changefreq: "monthly" })),
   { path: "/sentenze-commentate", priority: "0.7", changefreq: "weekly" },
   { path: "/articoli", priority: "0.7", changefreq: "weekly" },
   { path: "/privacy-policy", priority: "0.3", changefreq: "yearly" },

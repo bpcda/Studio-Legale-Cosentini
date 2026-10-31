@@ -11,6 +11,10 @@ const ScrollReveal = ({ children, className = "", delay = 0 }: ScrollRevealProps
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") {
+      setIsVisible(true);
+      return;
+    }
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -28,11 +32,10 @@ const ScrollReveal = ({ children, className = "", delay = 0 }: ScrollRevealProps
   return (
     <div
       ref={ref}
+      data-scroll-reveal
       className={`transition-all duration-700 ${className}`}
       style={{
-        opacity: isVisible ? 1 : 0,
         transform: isVisible ? "translateY(0)" : "translateY(16px)",
-        filter: isVisible ? "blur(0)" : "blur(4px)",
         transitionDelay: `${delay}ms`,
         transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
       }}

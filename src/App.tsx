@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,8 +18,18 @@ import ArticoloDetail from "./pages/ArticoloDetail.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import CookiePolicy from "./pages/CookiePolicy.tsx";
 import LoStudio from "./pages/LoStudio.tsx";
+import Servizio from "./pages/Servizio.tsx";
 
 const queryClient = new QueryClient();
+
+const RouteScroll = () => {
+  const { pathname, hash } = useLocation();
+  useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
+    else window.scrollTo(0, 0);
+  }, [pathname, hash]);
+  return null;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -27,10 +38,12 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <RouteScroll />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/consulenza" element={<Consulenza />} />
             <Route path="/lo-studio" element={<LoStudio />} />
+            <Route path="/servizi/:slug" element={<Servizio />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/sentenze-commentate" element={<SentenzeCommentate />} />

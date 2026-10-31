@@ -1,0 +1,50 @@
+[
+  {
+    "slug": "diritto-civile",
+    "serviceType": "civile",
+    "title": "Diritto civile",
+    "need": "Proprietà, contratti e condominio",
+    "description": "Assistenza nei rapporti tra privati, nella tutela della proprietà e nelle controversie condominiali.",
+    "topics": ["Diritti reali, usucapione e servitù", "Comunione e condominio", "Tutela della proprietà e del possesso", "Inadempimenti contrattuali"]
+  },
+  {
+    "slug": "diritto-amministrativo",
+    "serviceType": "amministrativo",
+    "title": "Diritto amministrativo",
+    "need": "Rapporti con la pubblica amministrazione",
+    "description": "Consulenza e assistenza nella tutela dei propri interessi davanti alla pubblica amministrazione e ai tribunali amministrativi.",
+    "topics": ["Rapporti con la pubblica amministrazione", "Valutazione della documentazione e degli atti", "Tutela davanti ai tribunali amministrativi"]
+  },
+  {
+    "slug": "responsabilita-231",
+    "serviceType": "231",
+    "title": "Responsabilità d'impresa",
+    "need": "Modelli organizzativi 231/01",
+    "description": "Consulenza e assistenza nell'implementazione dei modelli di organizzazione, gestione e controllo previsti dal D.Lgs. 231/2001.",
+    "topics": ["Modelli di organizzazione, gestione e controllo", "Responsabilità degli enti ai sensi del D.Lgs. 231/2001", "Valutazione delle esigenze organizzative dell'impresa"]
+  },
+  {
+    "slug": "recupero-crediti",
+    "serviceType": "recupero-crediti",
+    "title": "Recupero crediti",
+    "need": "Pagamenti e tutela del credito",
+    "description": "Assistenza nella tutela contrattuale del credito, nella prevenzione dei mancati pagamenti e nell'esecuzione forzata.",
+    "topics": ["Valutazione dei crediti e della documentazione", "Clausole contrattuali contro il rischio di mancato pagamento", "Diritto dell'esecuzione forzata"]
+  },
+  {
+    "slug": "trust-e-patrimoni",
+    "serviceType": "patrimoniale",
+    "title": "Trust e patrimoni",
+    "need": "Gestione del patrimonio e degli immobili",
+    "description": "Consulenza strategica nella gestione e valorizzazione di asset immobiliari e patrimoniali. Ideazione, creazione e gestione di trust.",
+    "topics": ["Ideazione, creazione e gestione di trust", "Gestione e valorizzazione del patrimonio", "Asset immobiliari e wealth management"]
+  },
+  {
+    "slug": "custodia-giudiziaria",
+    "serviceType": "custodia",
+    "title": "Custodia giudiziaria",
+    "need": "Custodia e amministrazione dei beni",
+    "description": "Servizi di custodia e amministrazione giudiziaria, con assistenza nella gestione dei beni affidati.",
+    "topics": ["Custodia giudiziaria", "Amministrazione giudiziaria", "Gestione dei beni affidati"]
+  }
+]
